@@ -1,0 +1,156 @@
+#include "cipher/error.h"
+#include "unigbrk.h"
+#include <stdio.h>
+#include <string.h>
+#include <unitypes.h>
+#include <unistr.h>
+#include <cipher/cipher.h>
+#include <uniwbrk.h>
+
+/// `*output` will point to the index after the last character of the reversed word
+static inline void _ciph_reverse_one_word(const uint8_t* word, size_t word_len, uint8_t** nonnil output) {
+  const uint8_t* word_ptr = word;
+  const uint8_t* word_end = word + word_len;
+  const uint8_t* next;
+  int grapheme_len = 0;
+  uint8_t* output_end = *output + word_len;
+
+  while (true) {
+    next = u8_grapheme_next(word_ptr, word_end);
+    if (next == NULL) break;
+    grapheme_len = next - word_ptr;
+
+    output_end -= grapheme_len;
+    memcpy(output_end, word_ptr, grapheme_len);
+
+    word_ptr = next;
+  }
+
+  *output += word_len;
+}
+
+ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uint8_t* nonnil output) {
+  ucs4_t uc;
+  int uc_len;
+  const uint8_t* input_ptr = input;
+  size_t input_left = input_len;
+  uint8_t* output_ptr = output;
+
+  // word start
+  const uint8_t* start_ptr = input;
+  int word_size = 0;
+
+  while (input_left > 0) {
+    uc_len = u8_mbtouc(&uc, input_ptr, input_left); // we might be able to use u8_mtouc_unsafe instead fi we are certain `input` is valid UTF-8
+    if (uc == 0xfffd) {
+      return CIPH_ERR_ENCODING;
+    }
+
+    switch (uc_wordbreak_property(uc)) {
+      case WBP_CR:
+      case WBP_LF:
+      case WBP_NEWLINE:
+      case WBP_ZWJ:
+      case WBP_FORMAT:
+      case WBP_SQ: // SINGLE QUOTE
+      case WBP_DQ: // DOUBLE QUOTE
+      case WBP_MIDNUM: // punct
+      case WBP_MIDLETTER: // ...
+      case WBP_MIDNUMLET: // ...
+      case WBP_EXTENDNUMLET:
+      case WBP_WSS: // WSegSpace
+        // wordbreak or special character -> copy
+        if (word_size > 0) {
+          // TODO: reverse
+          // memcpy(output_ptr, start_ptr, word_size);
+          // output_ptr += word_size;
+          _ciph_reverse_one_word(start_ptr, word_size, &output_ptr);
+          word_size = 0;
+        }
+
+        // copy whitespace/special character
+        memcpy(output_ptr, input_ptr, uc_len);
+        output_ptr += uc_len;
+
+        start_ptr = input_ptr + 1;
+        break;
+      default:
+        // letter -> reverse
+        word_size += 1;
+        break;
+    }
+
+    input_left -= uc_len;
+    input_ptr += uc_len;
+  }
+
+  if (word_size > 0) {
+    // TODO: reverse
+    // memcpy(output_ptr, start_ptr, word_size);
+    // output_ptr += word_size;
+    _ciph_reverse_one_word(start_ptr, word_size, &output_ptr);
+  }
+
+  *output_ptr = '\0';
+
+  return CIPH_OK;
+  // printf("input = %s\n", input);
+  // char word_breaks[input_len];
+  // u8_wordbreaks(input, input_len, word_breaks);
+
+  // char* out_cursor = output;
+  // int start = 0;
+  // bool start_new_word = true;
+  // for (int i = 0; i < input_len; i++) {
+  //   printf("%d: %c\n", word_breaks[i], input[i]);
+  //   // if (start == i) {
+  //   //   *out_cursor = input[i];
+  //   //   out_cursor += 1;
+  //   //   continue;
+  //   // }
+  //   // if (start_new_word && word_breaks[i] == 1) {
+  //   //   *out_cursor = input[i];
+  //   //   out_cursor += 1;
+  //   //   start += 1;
+  //   //   continue;
+  //   // }
+  //   // if (word_breaks[i]) {
+  //   //   _ciph_reverse_one_word(input + start, (i - start), &out_cursor);
+  //   //   // TODO: collect word and reverse graphemes
+  //   //   for (int j = start; j < i; j++) {
+  //   //     printf("%c", (char)input[j]);
+  //   //   }
+  //   //   printf("\n");
+  //   //   start = i + 1;
+  //   //   start_new_word = true;
+  //   // } else {
+  //   //   start_new_word = false;
+  //   // }
+  // }
+
+  // for (int j = start; j < input_len; j++) {
+  //   printf("%c", (char)input[j]);
+  // }
+  // printf("\n");
+
+  // output[input_len - 1] = '\0';
+
+  // return CIPH_OK;
+  // // const uint8_t* current = input;
+  // // const uint8_t* end = input + input_len;
+
+  // // ucs4_t codepoint;
+  // // int output_cursor = 0;
+  // // int len = 0;
+  // // const uint8_t* next = nil;
+  // // while ((next = u8_grapheme_next(current, end))) {
+  // //   len = next - current;
+
+
+
+
+  // //   current = next;
+  // }
+
+  // return CIPH_OK;
+}

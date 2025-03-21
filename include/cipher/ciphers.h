@@ -37,4 +37,4 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
 ///
 /// # Returns
 ///
-ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, char* nonnil output);
+ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uint8_t* nonnil output);

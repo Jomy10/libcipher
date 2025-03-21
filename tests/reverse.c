@@ -4,8 +4,8 @@
 #include "utils.h"
 
 void test_reverse(void) {
-  char* input = "ABC DEF XYZ";
-  char* expected = "CBA FED";
+  char* input = "ABC DEF. XYZ. C G";
+  char* expected = "CBA FED. ZYX. C G";
 
   eprintf("\nexpected: %s\n", expected);
 
