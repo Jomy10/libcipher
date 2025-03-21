@@ -26,6 +26,8 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
 ///
 /// Use `u8_check` from libunistring to check if the input is valid UTF-8.
 ///
+/// Punctuation is considered not part of a word and is kept at its original position
+///
 /// # Example
 /// 'ABC DEF' -> 'CBA FED'
 ///
@@ -36,5 +38,6 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
 ///   The last byte will be a nul-terminator.
 ///
 /// # Returns
-///
+/// - `CIPH_OK` on success
+/// - `CIPH_ERR_ENCODING` when input contains invalid UTF-8 (might be removed in the future)
 ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uint8_t* nonnil output);
