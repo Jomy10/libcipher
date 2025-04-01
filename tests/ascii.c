@@ -1,4 +1,3 @@
-#include "cipher/error.h"
 #include <string.h>
 #include <CUnit/Basic.h>
 #include <cipher/cipher.h>

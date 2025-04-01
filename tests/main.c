@@ -2,6 +2,8 @@
 
 extern void test_ascii(void);
 extern void test_reverse(void);
+extern void test_caesar(void);
+extern void test_caesar_negative(void);
 
 int main(void) {
   CU_pSuite pSuite = NULL;
@@ -17,7 +19,9 @@ int main(void) {
 
   if (
     (CU_add_test(pSuite, "ascii test", test_ascii) == NULL) ||
-    (CU_add_test(pSuite, "reverse word", test_reverse) == NULL)
+    (CU_add_test(pSuite, "reverse word", test_reverse) == NULL) ||
+    (CU_add_test(pSuite, "caesar", test_caesar) == NULL) ||
+    (CU_add_test(pSuite, "caesar negative shift", test_caesar_negative) == NULL)
   ) {
     CU_cleanup_registry();
     return CU_get_error();

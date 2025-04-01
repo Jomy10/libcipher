@@ -41,7 +41,7 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
   int word_size = 0;
 
   while (input_left > 0) {
-    uc_len = u8_mbtouc(&uc, input_ptr, input_left); // we might be able to use u8_mtouc_unsafe instead fi we are certain `input` is valid UTF-8
+    uc_len = u8_mbtouc(&uc, input_ptr, input_left); // we might be able to use u8_mtouc_unsafe instead if we are certain `input` is valid UTF-8
     if (uc == 0xfffd) {
       return CIPH_ERR_ENCODING;
     }
@@ -61,9 +61,6 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
       case WBP_WSS: // WSegSpace
         // wordbreak or special character -> copy
         if (word_size > 0) {
-          // TODO: reverse
-          // memcpy(output_ptr, start_ptr, word_size);
-          // output_ptr += word_size;
           _ciph_reverse_one_word(start_ptr, word_size, &output_ptr);
           word_size = 0;
         }
@@ -85,13 +82,8 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
   }
 
   if (word_size > 0) {
-    // TODO: reverse
-    // memcpy(output_ptr, start_ptr, word_size);
-    // output_ptr += word_size;
     _ciph_reverse_one_word(start_ptr, word_size, &output_ptr);
   }
-
-  *output_ptr = '\0';
 
   return CIPH_OK;
 }

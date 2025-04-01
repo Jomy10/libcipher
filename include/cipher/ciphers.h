@@ -26,7 +26,10 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
 ///
 /// Use `u8_check` from libunistring to check if the input is valid UTF-8.
 ///
-/// Punctuation is considered not part of a word and is kept at its original position
+/// Punctuation is considered not part of a word and is kept at its original position.
+///
+/// This function works on grapheme clusters. When reversing, grapheme clusters will be
+/// moved in its entirety.
 ///
 /// # Example
 /// 'ABC DEF' -> 'CBA FED'
@@ -34,10 +37,52 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
 /// # Parameters
 /// - `input`: the text to reverse encoded as valid unicode UTF-8.
 /// - `input_len`: the amount of bytes in `input`
-/// - `output`: the output buffer. This buffer should have a size of `input_len + 1`.
-///   The last byte will be a nul-terminator.
+/// - `output`: the output buffer. This buffer should have a size of `input_len`.
 ///
 /// # Returns
 /// - `CIPH_OK` on success
 /// - `CIPH_ERR_ENCODING` when input contains invalid UTF-8 (might be removed in the future)
 ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uint8_t* nonnil output);
+
+/// Shift all letters by `shift`
+///
+/// Use `u8_check` from libunistring to check if the input is valid UTF-8.
+///
+/// Only letters in the roman alphabet are shifted.
+///
+/// # Parameters
+/// - `input`: the text to shift the letters in
+/// - `input_len`: the amount of bytes in input
+/// - `shift`: the amount of positions to shift characters relative to the alphabet
+/// - `output`: the output buffer. This buffer should have a size of `input_len`. If
+///   a NUL-byte is required at the end of the string, then this has to be added manually
+///   at offset `input_len`.
+///
+/// # Returns
+/// - `CIPH_OK` on success
+/// - `CIPH_ERR_ENCODING` when the input is not valid UTF-8
+ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift, uint8_t* nonnil output);
+
+/// Replace all characters in the input with the lookup values in `lookup`. A
+/// will be replaced with lookup[0], B with lookup[1], etc. Lowercase characters
+/// are replaced with the lowercased value of the lookup value.
+///
+/// Use `u8_check` from libunistring to check if the input is valid UTF-8.
+///
+/// This function operates on codepoints, not on grapheme clusters. This means that
+/// à (being a + ◌̀, not à) will be replaced (e.g. if the replacement for A is E,
+/// then it will become è). à will NOT be replaced (being a single codepoint rather
+/// than a combination of 2). To replace enable replacing characters with diacritics,
+/// normalize the input using NFD, then normalize the output again with NFC to replace
+/// "character + diacritic" to a single codepoint of character with a diacritic.
+/// More info can be found at: https://unicode.org/reports/tr15/#Norm_Forms
+///
+/// # Parameters
+/// - `input`: the text to replace characters in
+/// - `input_len`: the amount of bytes in input
+/// - `lookup`: The characters to replace. These should be uppercased
+/// - `output`: the output buffer. This buffer should have a size of `input_len`
+///
+/// # Returns
+/// - `CIPH_OK` on success
+ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, const uint8_t nonnil lookup[26], uint8_t* nonnil output);
