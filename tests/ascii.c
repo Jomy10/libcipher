@@ -11,7 +11,7 @@ void test_ascii(void) {
   char output[strlen(input) * 4];
   CU_ASSERT(ciph_ascii(input, strlen(input), output) == CIPH_OK);
 
-  eprintf("\noutput  : '%s'\nexpected: '%s'\n", output, expected);
+  dbgout(output, expected);
 
   CU_ASSERT(strcmp(output, expected) == 0);
 }

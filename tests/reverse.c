@@ -7,11 +7,10 @@ void test_reverse(void) {
   char* input = "ABC DEF. XYZ. C G";
   char* expected = "CBA FED. ZYX. C G";
 
-  eprintf("\nexpected: %s\n", expected);
-
   uint8_t output[strlen(input) + 1];
   CU_ASSERT(ciph_reverse_words((const uint8_t*) input, strlen(input), output) == CIPH_OK);
-  eprintf("got: %s\n", output);
+
+  dbgout(output, expected);
 
   CU_ASSERT(strcmp((char*) output, expected) == 0);
 }

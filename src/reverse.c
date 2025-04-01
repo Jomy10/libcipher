@@ -8,7 +8,7 @@
 #include <uniwbrk.h>
 
 /// `*output` will point to the index after the last character of the reversed word
-static inline void _ciph_reverse_one_word(const uint8_t* word, size_t word_len, uint8_t** nonnil output) {
+static inline void _ciph_reverse_one_word(const uint8_t* nonnil word, size_t word_len, uint8_t** nonnil output) {
   const uint8_t* word_ptr = word;
   const uint8_t* word_end = word + word_len;
   const uint8_t* next;
@@ -94,63 +94,4 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
   *output_ptr = '\0';
 
   return CIPH_OK;
-  // printf("input = %s\n", input);
-  // char word_breaks[input_len];
-  // u8_wordbreaks(input, input_len, word_breaks);
-
-  // char* out_cursor = output;
-  // int start = 0;
-  // bool start_new_word = true;
-  // for (int i = 0; i < input_len; i++) {
-  //   printf("%d: %c\n", word_breaks[i], input[i]);
-  //   // if (start == i) {
-  //   //   *out_cursor = input[i];
-  //   //   out_cursor += 1;
-  //   //   continue;
-  //   // }
-  //   // if (start_new_word && word_breaks[i] == 1) {
-  //   //   *out_cursor = input[i];
-  //   //   out_cursor += 1;
-  //   //   start += 1;
-  //   //   continue;
-  //   // }
-  //   // if (word_breaks[i]) {
-  //   //   _ciph_reverse_one_word(input + start, (i - start), &out_cursor);
-  //   //   // TODO: collect word and reverse graphemes
-  //   //   for (int j = start; j < i; j++) {
-  //   //     printf("%c", (char)input[j]);
-  //   //   }
-  //   //   printf("\n");
-  //   //   start = i + 1;
-  //   //   start_new_word = true;
-  //   // } else {
-  //   //   start_new_word = false;
-  //   // }
-  // }
-
-  // for (int j = start; j < input_len; j++) {
-  //   printf("%c", (char)input[j]);
-  // }
-  // printf("\n");
-
-  // output[input_len - 1] = '\0';
-
-  // return CIPH_OK;
-  // // const uint8_t* current = input;
-  // // const uint8_t* end = input + input_len;
-
-  // // ucs4_t codepoint;
-  // // int output_cursor = 0;
-  // // int len = 0;
-  // // const uint8_t* next = nil;
-  // // while ((next = u8_grapheme_next(current, end))) {
-  // //   len = next - current;
-
-
-
-
-  // //   current = next;
-  // }
-
-  // return CIPH_OK;
 }
