@@ -1,11 +1,10 @@
-#include "cipher/error.h"
-#include "unigbrk.h"
 #include <stdio.h>
+#include <cipher.h>
 #include <string.h>
 #include <unitypes.h>
 #include <unistr.h>
-#include <cipher/cipher.h>
 #include <uniwbrk.h>
+#include <unigbrk.h>
 
 /// `*output` will point to the index after the last character of the reversed word
 static inline void _ciph_reverse_one_word(const uint8_t* nonnil word, size_t word_len, uint8_t** nonnil output) {

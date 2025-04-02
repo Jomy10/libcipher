@@ -1,6 +1,6 @@
 #include <string.h>
 #include <CUnit/Basic.h>
-#include <cipher/cipher.h>
+#include <cipher.h>
 #include "utils.h"
 
 void test_ascii(void) {

@@ -1,4 +1,5 @@
 #include <CUnit/Basic.h>
+#include <stdio.h>
 
 extern void test_ascii(void);
 extern void test_reverse(void);
@@ -10,7 +11,7 @@ extern void test_alphabet_vignere(void);
 extern void test_morse(void);
 extern void test_morse_small_buffer(void);
 
-const void* _stderr;
+FILE* _stderr;
 
 int main(void) {
   #ifdef TEST_NO_OUTPUT

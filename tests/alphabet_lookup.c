@@ -1,10 +1,9 @@
 #include <unistd.h>
-#include <CUnit/Basic.h>
-#include "CUnit/CUnit.h"
-#include "cipher/ciphers.h"
 #include <string.h>
-#include "uninorm.h"
-#include "unistr.h"
+#include <CUnit/Basic.h>
+#include <cipher.h>
+#include <uninorm.h>
+#include <unistr.h>
 #include "utils.h"
 
 void test_alphabet_lookup(void) {

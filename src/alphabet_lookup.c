@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <string.h>
+#include <cipher.h>
 #include <unitypes.h>
 #include <unistr.h>
-#include <cipher/cipher.h>
 
 #define _CIPH_ASCII_TO_UPPER(ASCII_CHAR) ASCII_CHAR + 32
 

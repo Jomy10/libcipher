@@ -1,11 +1,10 @@
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <cipher.h>
 #include <unigbrk.h>
 #include <unistd.h>
 #include <unistr.h>
 #include <unicase.h>
-#include <cipher/ciphers.h>
 
 #ifdef CIPH_DIT
 #define DIT CIPH_DIT
@@ -18,6 +17,10 @@
 #else
 #define DAH "—"
 #endif
+
+#define MAX(A, B) (A > B) ? (A) : (B)
+
+enum { MORSE_CHAR_MAX = MAX(strlen(DIT), strlen(DAH)) * 7 }; // this is an enum so that MORSE_CHAR_MAX is an actual const. See also: https://stackoverflow.com/a/18435398/14874405
 
 #define CIPH_MORSE_CHAR(lit) len = strlen(lit); memcpy(morse_char, lit, len); return len;
 
@@ -95,8 +98,6 @@ static inline int _ciph_morse_char(ucs4_t c, char* morse_char) {
   return len;
 }
 
-#define MAX(A, B) (A > B) ? (A) : (B)
-
 ciph_err_t ciph_morse(
   const uint8_t* nonnil input, size_t input_len,
   uint8_t* nonnil output, size_t output_len,
@@ -112,7 +113,7 @@ ciph_err_t ciph_morse(
   uint8_t* output_ptr = output;
   size_t output_left = output_len;
 
-  char morse_char[MAX(strlen(DIT), strlen(DAH)) * 7] = {0};
+  char morse_char[MORSE_CHAR_MAX] = {0};
   int ret;
 
   ucs4_t first_codepoint;

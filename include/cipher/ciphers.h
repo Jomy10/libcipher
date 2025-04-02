@@ -7,6 +7,10 @@
 #include "internal/nil.h"
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// Converts characters into their ASCII equivalents. ASCII values are padded with zeroes
 /// to have 3 positions and separated with a space.
 ///
@@ -182,5 +186,24 @@ ciph_err_t ciph_morse(
   const uint8_t* nilable * nilable input_left, size_t* nilable input_len_left,
   size_t* nilable boutput_len
 );
+
+#ifdef CIPH_AUDIO
+/// Turn morse code into audio
+///
+/// # Parameters
+/// - `morse_code`: The string containing the morse code (only `DIT` and `DAH` are allowed,
+///   see `ciph_morse` for more info)
+/// - ``
+ciph_err_t ciph_morse_to_audio(
+  const uint8_t* nonnil morse_code, size_t morse_code_len,
+  char* nonnil wave_data, size_t wave_data_len,
+  const uint8_t* nilable * nilable morse_code_end, size_t* nilable morse_code_len_left,
+  size_t* nilable boutput_len
+);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // include guard

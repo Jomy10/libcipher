@@ -1,8 +1,8 @@
 #include <unistd.h>
 #include <string.h>
-#include <cipher/cipher.h>
+#include <cipher.h>
 #include <CUnit/Basic.h>
-#include "unistr.h"
+#include <unistr.h>
 #include "utils.h"
 
 void test_reverse(void) {

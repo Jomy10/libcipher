@@ -26,31 +26,4 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// # General concepts
-//
-// A `char*` string denotes a string in any encoding, usually the platform's
-// own encoding, unless otherwise annotated.
-//
-// A `uint8_t*` denotes a valid unicode string. Function expecting this kind of
-// string do not check for valid unicode, it is the caller's responsibility to
-// ensure valid unicode. This can be checked using GNU's libunistring's `u8_check`
-// function.
-//
-// All functions return a `ciph_err_t`. `CIPH_OK` (= 0) is returned on success,
-// otherwise a `CIPH_ERR_{errtype}` is returned.
-//
-// Text output is always provided at the end of the function using a non-const pointer.
-//
-// All parameters are annoteted with `nonnil` and `nilable` attributes. Passing a
-// NULL pointer to a `nonnil` parameter is considered undefined behaviour, it is
-// the caller's responisibility to ensure this doesn't happen.
-//
-// Allocations usually happen by the user of the library. Read the documentation of
-// each function to determine how much to allocate for an output buffer for example.
-
-#ifndef CIPH_UNISTRING_VENDORED
-#include "internal/unistring_config.h"
-#endif
-
-#include "error.h"
-#include "ciphers.h"
+#include "cipher/cipher.h"

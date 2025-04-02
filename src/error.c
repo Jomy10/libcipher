@@ -1,4 +1,4 @@
-#include <cipher/cipher.h>
+#include <cipher.h>
 
 char* ciph_strerror(ciph_err_t err) {
   switch (err) {

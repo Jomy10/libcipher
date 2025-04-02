@@ -8,6 +8,14 @@ typedef enum {
   CIPH_ERR_ENCODING,
 } ciph_err_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 char* ciph_strerr(ciph_err_t err);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

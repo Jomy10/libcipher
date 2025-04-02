@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+extern FILE* _stderr;
+
 #ifndef eprintf
 #define eprintf(...) fprintf(_stderr, __VA_ARGS__)
 #endif
@@ -24,7 +26,5 @@
 
 #ifndef _CIPHER_TEST_UTILS_H
 #define _CIPHER_TEST_UTILS_H
-
-extern FILE* _stderr;
 
 #endif

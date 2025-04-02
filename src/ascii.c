@@ -1,6 +1,5 @@
 #include <stddef.h>
-#include <cipher/error.h>
-#include <cipher/internal/nil.h>
+#include <cipher.h>
 
 static inline void _ctoa_ascii_base10(unsigned char in, char* nonnil out) {
   out[0] = ((in / 100) % 10) + '0';
