@@ -10,6 +10,7 @@ ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift,
   const uint8_t* input_ptr = input;
   size_t input_left = input_len;
   uint8_t* output_ptr = output;
+  int _shift;
 
   while (input_left > 0) {
     clen = u8_mblen(input_ptr, input_left);
@@ -24,11 +25,11 @@ ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift,
 
     if (clen == 1) {
       if (input_ptr[0] >= 'a' && input_ptr[0] <= 'z') {
-        int _shift = (input_ptr[0] - 'a' + shift) % 26;
+        _shift = (input_ptr[0] - 'a' + shift) % 26;
         if (_shift < 0) _shift = 26 + _shift;
         *output_ptr = 'a' + _shift;
       } else if (input_ptr[0] >= 'A' && input_ptr[0] <= 'Z') {
-        int _shift = (input_ptr[0] - 'A' + shift) % 26;
+        _shift = (input_ptr[0] - 'A' + shift) % 26;
         if (_shift < 0) _shift = 26 + _shift;
         *output_ptr = 'A' + _shift;
       } else {

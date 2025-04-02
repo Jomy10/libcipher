@@ -50,10 +50,16 @@ C::Library(
   ]
 )
 
+test_cflags = []
+if flag("no-output")
+  test_cflags << "-DTEST_NO_OUTPUT"
+end
+
 C::Executable(
   name: "test",
   sources: "tests/**/*.c",
-  dependencies: ["cipher", "CUnit:cunit"]
+  dependencies: ["cipher", "CUnit:cunit"],
+  cflags: test_cflags
 )
 
 cmd "test" do

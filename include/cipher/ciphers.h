@@ -1,3 +1,6 @@
+#ifndef _CIPH_H
+#define _CIPH_H
+
 #include <stddef.h>
 #include <unitypes.h>
 #include "error.h"
@@ -63,6 +66,49 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
 /// - `CIPH_ERR_ENCODING` when the input is not valid UTF-8
 ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift, uint8_t* nonnil output);
 
+//=== Start Alphabet Lookup ===//
+
+/// regular alphabet
+extern const uint8_t CIPH_ALPHABET[26];
+
+/// Returns the atbash alphabet
+///
+/// `buffer` should be 26 bytes
+void ciph_alphabet_atbash(uint8_t* nonnil buffer);
+
+typedef enum {
+  CIPH_LVAL_OK,
+
+  /// A character is used twice
+  CIPH_LVAL_DOUBLE_CHAR,
+  /// The word is longer than 26 characters
+  CIPH_LVAL_TOO_LONG,
+} ciph_lookup_validation_t;
+
+/// Validate a word to be valid for use in vignère cipher
+ciph_lookup_validation_t ciph_alphabet_vignere_validate(const uint8_t* nonnil word, size_t word_len);
+
+/// Generate an alphabet for vignère encoding. This alphabet can then be used in
+/// `ciph_alphabet_lookup`.
+///
+/// # Example
+/// word = lemon
+/// alphabet becomes:
+/// LEMONABCDFGHI
+/// JKPQRSTUVWXYZ
+///
+/// So L becomes J, P becomes M, ...
+///
+/// # Parameters
+/// - `word`: a word containing only unique characters and only characters
+///    between 'A' to 'Z'. Characters should be uppercased
+/// - `word_len`: the amount of bytes in `world` this should be no more than 26
+///   and bigger than 0
+/// - `buffer`: the buffer in which to store the alphabet lookup, should be 26
+///   bytes
+/// - `alphabet`: optional. Will write the alphabet as shown in the example
+void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t* nonnil buffer, uint8_t* nilable alphabet);
+
 /// Replace all characters in the input with the lookup values in `lookup`. A
 /// will be replaced with lookup[0], B with lookup[1], etc. Lowercase characters
 /// are replaced with the lowercased value of the lookup value.
@@ -80,9 +126,15 @@ ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift,
 /// # Parameters
 /// - `input`: the text to replace characters in
 /// - `input_len`: the amount of bytes in input
-/// - `lookup`: The characters to replace. These should be uppercased
+/// - `lookup`: The characters to replace. These should be uppercased. The lookup
+///   may only contain letters 'A' to 'Z'. The lookup needs to always contain 26
+///   characters (bytes)
 /// - `output`: the output buffer. This buffer should have a size of `input_len`
 ///
 /// # Returns
 /// - `CIPH_OK` on success
-ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, const uint8_t nonnil lookup[26], uint8_t* nonnil output);
+ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, const uint8_t* nonnil lookup, uint8_t* nonnil output);
+
+//=== End Alphabet Lookup ===//
+
+#endif // include guard

@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <unistd.h>
 
 #ifndef eprintf
-#define eprintf(...) fprintf(stderr, __VA_ARGS__)
+#define eprintf(...) fprintf(_stderr, __VA_ARGS__)
 #endif
 
 #ifndef dbgout
@@ -12,11 +13,18 @@
 
 #ifndef dbgout2
 #define dbgout2(got, gotlen, expected, explen) \
-  write(fileno(stderr), "\nexpected: ", strlen("\nexpected: ")); \
-  write(fileno(stderr), expected, explen); \
-  write(fileno(stderr), "\n", 1); \
+  write(fileno(_stderr), "\nexpected: '", strlen("\nexpected: '")); \
+  write(fileno(_stderr), expected, explen); \
+  write(fileno(_stderr), "'\n", 2); \
   \
-  write(fileno(stderr), "got     : ", strlen("got     : ")); \
-  write(fileno(stderr), got, gotlen); \
-  write(fileno(stderr), "\n", 1);
+  write(fileno(_stderr), "got     : '", strlen("got     : '")); \
+  write(fileno(_stderr), got, gotlen); \
+  write(fileno(_stderr), "'\n", 2);
+#endif
+
+#ifndef _CIPHER_TEST_UTILS_H
+#define _CIPHER_TEST_UTILS_H
+
+extern FILE* _stderr;
+
 #endif

@@ -1,9 +1,11 @@
 #ifndef nil
-#define nil 0
+#define nil (void*)0
 #endif
 
 #ifndef nonnil
-  #if defined(__GNUC__)
+  #if defined(__clang__)
+    #define nonnil _Nonnull
+  #elif defined(__GNUC__)
     #define nonnil __attribute__((nonnull))
   #else
     #define nonnil
@@ -11,8 +13,8 @@
 #endif
 
 #ifndef nilable
-  #if defined(__GNUC__)
-    #define nilable __attribute__((nullable))
+  #if defined(__clang__)
+    #define nilable _Nullable
   #else
     #define nilable
   #endif

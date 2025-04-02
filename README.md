@@ -9,3 +9,5 @@ Currently, this library supports the following ciphers:
 - Ascii
 - Caesar
 - Reverse words
+
+All functions work with unicode encoding.
