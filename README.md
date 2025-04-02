@@ -11,3 +11,7 @@ Currently, this library supports the following ciphers:
 - Reverse words
 
 All functions work with unicode encoding.
+
+## License
+
+The code is licensed under the MIT license

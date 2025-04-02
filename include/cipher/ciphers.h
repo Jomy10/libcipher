@@ -5,6 +5,7 @@
 #include <unitypes.h>
 #include "error.h"
 #include "internal/nil.h"
+#include <stdbool.h>
 
 /// Converts characters into their ASCII equivalents. ASCII values are padded with zeroes
 /// to have 3 positions and separated with a space.
@@ -107,6 +108,10 @@ ciph_lookup_validation_t ciph_alphabet_vignere_validate(const uint8_t* nonnil wo
 /// - `buffer`: the buffer in which to store the alphabet lookup, should be 26
 ///   bytes
 /// - `alphabet`: optional. Will write the alphabet as shown in the example
+///
+/// # Validation
+/// In debug builds, the function will crash if the word is invalid. If you want
+/// to check user input for the word, then `ciph_alphabet_vignere_validate` can be used.
 void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t* nonnil buffer, uint8_t* nilable alphabet);
 
 /// Replace all characters in the input with the lookup values in `lookup`. A
@@ -136,5 +141,46 @@ void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t*
 ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, const uint8_t* nonnil lookup, uint8_t* nonnil output);
 
 //=== End Alphabet Lookup ===//
+
+/// Encode a message in morse code using "·" and "—", separated by spaces.
+/// The characters used to encode morse can be altered at compile time by
+/// defining `CIPH_DIT` and `CIPH_DAH` macros to a string containing the
+/// required character.
+///
+/// Supports more characters than the standard alphabet, as indicated on https://nl.wikipedia.org/wiki/Morse#Het_morsealfabet.
+///
+/// When grapheme clusters are made up of more than one codepoint,
+/// only the first codepoint is encoded.
+///
+/// # Parameters
+/// - `input`: the input text to encode
+/// - `input_len`: the amount of bytes in `input`
+/// - `output`: the output buffer. The length of this output buffer cannot be known
+///   before encoding. A good place to start is `input_len * 4 * 3`. When the output
+///   buffer does not contain enough space to encode the input buffer, input_left
+///   will be set the point in `input` which has not been encoded yet and `input_len_left`
+///   will be set to the amount of bytes left to encode. When this occurs, the morse
+///   function can be called again with these two parameters as `input` and `input_len`
+///   respectively, after reallocating output to be bigger and advancing it by
+///   `boutput_len`. An example of using this function with a dynamically reallocated buffer
+///   can be found in the examples (`test_morse_small_buffer`).
+/// - `copy_non_encodable_characters`: Non-encodable characters will be copied to
+///   the output if `copy_non_encodable_characters` is true. Otherwise they are ignored.
+/// - `input_left`: will be set the point in `input` where encoding has stopped,
+///   otherwise is set to NULL.
+/// - `input_len_left`: the amount of bytes left to encode
+/// - `boutput_len`: the amount of bytes in the output buffer that have
+///   been written to
+///
+/// # Returns
+/// - `CIPH_OK` on success
+/// - `CIPH_ERR_ENCODING` if the input contains invalid UTF-8
+ciph_err_t ciph_morse(
+  const uint8_t* nonnil input, size_t input_len,
+  uint8_t* nonnil output, size_t output_len,
+  bool copy_non_encodable_characters,
+  const uint8_t* nilable * nilable input_left, size_t* nilable input_len_left,
+  size_t* nilable boutput_len
+);
 
 #endif // include guard
