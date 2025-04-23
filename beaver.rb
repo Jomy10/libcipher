@@ -1,47 +1,76 @@
+puts HOST
+puts TARGET
+
 require 'etc'
 require 'fileutils'
 
 build_dir "build"
 
-Dir.mkdir "deps" unless Dir.exist? "deps"
+deps_dir = "deps/#{TARGET}"
+FileUtils.mkdir_p deps_dir unless Dir.exist? deps_dir
 
-unless Dir.exist? "deps/CUnit"
-  sh "git clone https://gitlab.com/cunity/cunit deps/CUnit"
+unless TARGET.os == "emscripten"
+  cunit_dir = File.join(deps_dir, "CUnit")
+  unless Dir.exist?(cunit_dir)
+    sh "git clone https://gitlab.com/cunity/cunit #{cunit_dir}"
+  end
+
+  import_cmake cunit_dir # TODO: macos min version
 end
-
-import_cmake "deps/CUnit" # TODO: macos min version
 
 unistring_vendored = !flag("build-unistring")
 unistring_dep = nil
 if !unistring_vendored
   unistr = "libunistring-1.3"
-  unless Dir.exist? "deps/#{unistr}"
-    Dir.chdir("deps") do
-      unless Dir.exist? "#{unistr}.tar.gz"
-        sh "curl -O https://ftp.gnu.org/gnu/libunistring/#{unistr}.tar.gz"
+  unistr_dir = File.join(deps_dir, unistr)
+  unless Dir.exist? unistr_dir
+    Dir.chdir(deps_dir) do
+      unless File.exist? "#{unistr}.tar.gz"
+        begin
+          sh "curl -O https://ftp.gnu.org/gnu/libunistring/#{unistr}.tar.gz"
+        rescue => e
+          puts "Error occurred: #{e}. Trying a mirror..."
+          sh "curl -O https://mirror.ibcp.fr/pub/gnu/libunistring/#{unistr}.tar.gz"
+        end
       end
       sh "tar -xvf #{unistr}.tar.gz"
     end
-    Dir.chdir("deps/#{unistr}") do
+    Dir.chdir(unistr_dir) do
       begin
-        sh "./configure"
-        sh "make -j #{Etc.nprocessors || 0}"
+        if TARGET.os == "emscripten"
+          sh "emconfigure ./configure \
+            --host=#{TARGET} \
+            ac_cv_search_nanosleep=no \
+            ac_cv_have_decl_sleep=no \
+            --disable-threads \
+            --enable-static \
+            --disable-shared"
+          sh "emmake make -j #{Etc.nprocessors || 0}"
+        else
+          sh "./configure"
+          sh "make -j #{Etc.nprocessors || 0}"
+        end
       rescue => e
-        Dir.rmdir("deps/#{unistr}")
+        Dir.rmdir(unistr_dir)
         raise e
       end
     end
-    Dir.chdir("deps") do
-      sh "rm #{unistr}.tar.gz"
+    Dir.chdir(deps_dir) do
+      sh("rm #{unistr}.tar.gz") if File.exist?("#{unistr}.tar.gz")
     end
 
-    FileUtils.cp("deps/#{unistr}/config.h", "include/cipher/internal/unistring_config.h")
+    FileUtils.cp(File.join(unistr_dir, "config.h"), "include/cipher/internal/unistring_config.h")
   end
 
+  # /opt/homebrew/Cellar/emscripten/4.0.7/libexec/emcc -DHAVE_CONFIG_H -DNO_XMALLOC -I. -I..  -I. -I. -I.. -I.. -DIN_LIBUNISTRING -DDEPENDS_ON_LIBICONV=1 -I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/icu4c@76/include -I/opt/homebrew/opt/sqlite/include  -g -O2 -c unictype/pr_titlecase.c
   unistring_dep = flags(
-    ["-I#{File.realpath("deps/#{unistr}/lib")}", "-I#{File.realpath("deps/#{unistr}")}"],
     [
-      "-L#{File.realpath("deps/#{unistr}/lib/.libs")}",
+      "-I#{File.realpath(File.join(unistr_dir, "lib"))}",
+      "-I#{File.realpath(unistr_dir)}",
+      "-D_GL_CONFIG_H_INCLUDED"
+    ],
+    [
+      "-L#{File.realpath(File.join(unistr_dir, "lib/.libs"))}",
       "-lunistring"
     ]
   )
@@ -63,7 +92,7 @@ end
 C::Library(
   name: "cipher",
   sources: "src/**/*.c",
-  artifacts: [:staticlib, :dynlib],
+  artifacts: TARGET.os == "emscripten" ? [:staticlib, :jslib] : [:staticlib, :dynlib],
   headers: "include",
   cflags: ciph_cflags,
   dependencies: [
@@ -71,21 +100,23 @@ C::Library(
   ]
 )
 
-test_cflags = []
-if flag("no-output")
-  test_cflags << "-DTEST_NO_OUTPUT"
-end
+unless TARGET.os == "emscripten"
+  test_cflags = []
+  if flag("no-output")
+    test_cflags << "-DTEST_NO_OUTPUT"
+  end
 
-C::Executable(
-  name: "test",
-  sources: "tests/**/*.c",
-  dependencies: ["cipher", "CUnit:cunit"],
-  cflags: test_cflags,
-  linker_flags: ["-mmacos-version-min=15.1"] # TODO: configure
-)
+  C::Executable(
+    name: "test",
+    sources: "tests/**/*.c",
+    dependencies: ["cipher", "CUnit:cunit"],
+    cflags: test_cflags,
+    linker_flags: ["-mmacos-version-min=15.1"] # TODO: configure
+  )
 
-cmd "test" do
-  project("libcipher").target("test").run([])
+  cmd "test" do
+    project("libcipher").target("test").run([])
+  end
 end
 
 pre "clean" do

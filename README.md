@@ -63,6 +63,11 @@ beaver test
 
 Same build options apply to the test command
 
+## Contributing
+
+Contributions are highly appreciated. This library isn't perfect, but your
+contribution can make it better.
+
 ## License
 
 The code is licensed under the [MIT license](LICENSE).
