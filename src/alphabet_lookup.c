@@ -72,13 +72,10 @@ void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t*
   uint8_t alphabet_buffer[26];
   uint8_t* alphabet = alphabet_buffer;
 
-  if (word_len == 0) {
-    memcpy(buffer, CIPH_ALPHABET, 26);
-    return;
+  if (word_len != 0) {
+    memcpy(alphabet, word, word_len);
+    alphabet += word_len;
   }
-
-  memcpy(alphabet, word, word_len);
-  alphabet += word_len;
 
   for (int i = 0; i < 26; i++) {
     for (int j = 0; j < word_len; j++) {

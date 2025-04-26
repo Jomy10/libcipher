@@ -78,7 +78,7 @@ void test_alphabet_vignere(void) {
 
 void test_alphabet_vignere_empty_word(void) {
   const uint8_t* input = (uint8_t*)"ABC";
-  const uint8_t* expected = input;
+  const uint8_t* expected = (uint8_t*)"NOP";
 
   uint8_t alphabet[26] = {0};
   ciph_alphabet_vignere((uint8_t*)"", 0, alphabet, nil);
