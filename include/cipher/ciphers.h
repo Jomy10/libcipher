@@ -7,6 +7,14 @@
 #include "internal/nil.h"
 #include <stdbool.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#define EXPORT EMSCRIPTEN_KEEPALIVE
+#else
+#define EXPORT
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,7 +36,7 @@ extern "C" {
 ///
 /// # Returns
 /// `CIPH_OK`
-ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil output);
+EXPORT ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil output);
 
 /// Reverse all words in a text
 ///
@@ -50,7 +58,7 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
 /// # Returns
 /// - `CIPH_OK` on success
 /// - `CIPH_ERR_ENCODING` when input contains invalid UTF-8 (might be removed in the future)
-ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uint8_t* nonnil output);
+EXPORT ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uint8_t* nonnil output);
 
 /// Shift all letters by `shift`
 ///
@@ -69,7 +77,7 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
 /// # Returns
 /// - `CIPH_OK` on success
 /// - `CIPH_ERR_ENCODING` when the input is not valid UTF-8
-ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift, uint8_t* nonnil output);
+EXPORT ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int shift, uint8_t* nonnil output);
 
 //=== Start Alphabet Lookup ===//
 
@@ -79,7 +87,7 @@ extern const uint8_t CIPH_ALPHABET[26];
 /// Returns the atbash alphabet
 ///
 /// `buffer` should be 26 bytes
-void ciph_alphabet_atbash(uint8_t* nonnil buffer);
+EXPORT void ciph_alphabet_atbash(uint8_t* nonnil buffer);
 
 typedef enum {
   CIPH_LVAL_OK,
@@ -91,7 +99,7 @@ typedef enum {
 } ciph_lookup_validation_t;
 
 /// Validate a word to be valid for use in vignère cipher
-ciph_lookup_validation_t ciph_alphabet_vignere_validate(const uint8_t* nonnil word, size_t word_len);
+EXPORT ciph_lookup_validation_t ciph_alphabet_vignere_validate(const uint8_t* nonnil word, size_t word_len);
 
 /// Generate an alphabet for vignère encoding. This alphabet can then be used in
 /// `ciph_alphabet_lookup`.
@@ -111,12 +119,13 @@ ciph_lookup_validation_t ciph_alphabet_vignere_validate(const uint8_t* nonnil wo
 ///   and bigger than 0
 /// - `buffer`: the buffer in which to store the alphabet lookup, should be 26
 ///   bytes
-/// - `alphabet`: optional. Will write the alphabet as shown in the example
+/// - `alphabet`: optional. Will write the alphabet as shown in the example. Should
+///   be 26 bytes.
 ///
 /// # Validation
 /// In debug builds, the function will crash if the word is invalid. If you want
 /// to check user input for the word, then `ciph_alphabet_vignere_validate` can be used.
-void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t* nonnil buffer, uint8_t* nilable alphabet);
+EXPORT void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t* nonnil buffer, uint8_t* nilable alphabet);
 
 /// Replace all characters in the input with the lookup values in `lookup`. A
 /// will be replaced with lookup[0], B with lookup[1], etc. Lowercase characters
@@ -142,7 +151,7 @@ void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t*
 ///
 /// # Returns
 /// - `CIPH_OK` on success
-ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, const uint8_t* nonnil lookup, uint8_t* nonnil output);
+EXPORT ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, const uint8_t* nonnil lookup, uint8_t* nonnil output);
 
 //=== End Alphabet Lookup ===//
 
@@ -160,7 +169,7 @@ ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, c
 /// - `input`: the input text to encode
 /// - `input_len`: the amount of bytes in `input`
 /// - `output`: the output buffer. The length of this output buffer cannot be known
-///   before encoding. A good place to start is `input_len * 4 * 3`. When the output
+///   before encoding. A good place to start is `input_len * 4`. When the output
 ///   buffer does not contain enough space to encode the input buffer, input_left
 ///   will be set the point in `input` which has not been encoded yet and `input_len_left`
 ///   will be set to the amount of bytes left to encode. When this occurs, the morse
@@ -179,7 +188,7 @@ ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input_len, c
 /// # Returns
 /// - `CIPH_OK` on success
 /// - `CIPH_ERR_ENCODING` if the input contains invalid UTF-8
-ciph_err_t ciph_morse(
+EXPORT ciph_err_t ciph_morse(
   const uint8_t* nonnil input, size_t input_len,
   uint8_t* nonnil output, size_t output_len,
   bool copy_non_encodable_characters,
@@ -194,7 +203,7 @@ ciph_err_t ciph_morse(
 /// - `morse_code`: The string containing the morse code (only `DIT` and `DAH` are allowed,
 ///   see `ciph_morse` for more info)
 /// - ``
-ciph_err_t ciph_morse_to_audio(
+EXPORT ciph_err_t ciph_morse_to_audio(
   const uint8_t* nonnil morse_code, size_t morse_code_len,
   char* nonnil wave_data, size_t wave_data_len,
   const uint8_t* nilable * nilable morse_code_end, size_t* nilable morse_code_len_left,

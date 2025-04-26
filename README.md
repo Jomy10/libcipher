@@ -55,6 +55,26 @@ Build options should be provide after a double dash "`--`". e.g.
 beaver cipher -o -- --no-audio
 ```
 
+**compiling for the web**
+
+The following will build a release build for use on the web.
+
+```sh
+beaver --target wasm32-unkown-emscripten -o -- --build-unistring
+```
+
+In the [binding/js](binding/js) directory you can find a binding file written
+in typescript.
+
+**compiling for node/bun/deno**
+
+When you want to use this library in a node environment rather than on the web,
+the `--build-for-node` option can be used.
+
+```sh
+beaver --target wasm32-unknown-emscripten -o -- --build-unistring --build-for-node
+```
+
 ## testing
 
 ```sh

@@ -10,7 +10,7 @@ deps_dir = "deps/#{TARGET}"
 FileUtils.mkdir_p deps_dir unless Dir.exist? deps_dir
 
 unless TARGET.os == "emscripten"
-  cunit_dir = File.join(deps_dir, "CUnit")
+  cunit_dir = File.join("deps", "CUnit")
   unless Dir.exist?(cunit_dir)
     sh "git clone https://gitlab.com/cunity/cunit #{cunit_dir}"
   end
@@ -42,6 +42,7 @@ if !unistring_vendored
             --host=#{TARGET} \
             ac_cv_search_nanosleep=no \
             ac_cv_have_decl_sleep=no \
+            ac_cv_func_malloc_0_nonnull=yes \
             --disable-threads \
             --enable-static \
             --disable-shared"
@@ -89,12 +90,33 @@ if unistring_vendored
   ciph_cflags << "-DCIPH_UNISTRING_VENDORED"
 end
 
+ciph_linker_flags = []
+if TARGET.os == "emscripten"
+  ciph_linker_flags.append *[
+    # "-s", "LINKABLE=1",
+    "-s", "EXPORT_ALL=1",
+    "-s", "EXPORTED_RUNTIME_METHODS=['ccall', 'stringToNewUTF8', 'UTF8ToString']",
+    "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc']",
+    "-s", "EXPORT_ES6=1",
+    "-s", "MODULARIZE=1",
+    "-s", "ALLOW_MEMORY_GROWTH=1",
+    # "-s", "MALLOC=none"
+  ]
+
+  # When this flag is specified, it will build the js module for running inside
+  # of node instead of on the web
+  if !flag("build-for-node")
+    ciph_linker_flags.append *["-s", "ENVIRONMENT=web"]
+  end
+end
+
 C::Library(
   name: "cipher",
   sources: "src/**/*.c",
   artifacts: TARGET.os == "emscripten" ? [:staticlib, :jslib] : [:staticlib, :dynlib],
   headers: "include",
   cflags: ciph_cflags,
+  linker_flags: ciph_linker_flags,
   dependencies: [
     unistring_dep,
   ]

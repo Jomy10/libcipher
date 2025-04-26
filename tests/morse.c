@@ -39,7 +39,7 @@ void test_morse_small_buffer(void) {
   size_t output_cap = 5;
   uint8_t* output = malloc(output_cap);
 
-  while (input_len_left != 0) {
+  while (true) {
     ciph_err_t err = ciph_morse(
       input, input_len_left,
       output + output_len, output_cap - output_len,
@@ -54,6 +54,8 @@ void test_morse_small_buffer(void) {
       CU_FAIL("non zero return code");
       return;
     }
+
+    if (input_len_left == 0) break;
 
     output_cap *= 2;
     output = realloc(output, output_cap);
