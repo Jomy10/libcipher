@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 #include <cipher.h>
 #include <unitypes.h>
@@ -72,7 +73,7 @@ void ciph_alphabet_vignere(const uint8_t* nonnil word, size_t word_len, uint8_t*
   uint8_t* alphabet = alphabet_buffer;
 
   if (word_len == 0) {
-    memcpy(alphabet, CIPH_ALPHABET, 26);
+    memcpy(buffer, CIPH_ALPHABET, 26);
     return;
   }
 

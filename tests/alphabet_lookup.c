@@ -75,3 +75,25 @@ void test_alphabet_vignere(void) {
 
   free((void*)normin);
 }
+
+void test_alphabet_vignere_empty_word(void) {
+  const uint8_t* input = (uint8_t*)"ABC";
+  const uint8_t* expected = input;
+
+  uint8_t alphabet[26] = {0};
+  ciph_alphabet_vignere((uint8_t*)"", 0, alphabet, nil);
+
+  uint8_t output[strlen((char*)input)];
+  ciph_err_t err = ciph_alphabet_lookup(input, strlen((char*)input), alphabet, output);
+  if (err != CIPH_OK) {
+    CU_FAIL("non zero return code");
+    return;
+  }
+
+  dbgout2(output, strlen((char*)input), expected, strlen((char*)expected));
+  fprintf(_stderr, "Alphabet: ");
+  write(fileno(_stderr), alphabet, 26);
+  write(fileno(_stderr), "\n", 1);
+
+  CU_ASSERT(u8_cmp2(output, strlen((char*)input), expected, strlen((char*)expected)) == 0);
+}

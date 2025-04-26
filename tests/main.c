@@ -8,12 +8,15 @@ extern void test_caesar_negative(void);
 extern void test_alphabet_lookup(void);
 extern void test_alphabet_atbash(void);
 extern void test_alphabet_vignere(void);
+extern void test_alphabet_vignere_empty_word(void);
 extern void test_morse(void);
 extern void test_morse_small_buffer(void);
 
 FILE* _stderr;
 
 int main(void) {
+  printf("Running tests...\n");
+
   #ifdef TEST_NO_OUTPUT
   _stderr = fopen("/dev/null", "w");
   #else
@@ -39,6 +42,7 @@ int main(void) {
     (CU_add_test(pSuite, "alphabet lookup", test_alphabet_lookup) == NULL) ||
     (CU_add_test(pSuite, "atbash", test_alphabet_atbash) == NULL) ||
     (CU_add_test(pSuite, "vignère", test_alphabet_vignere) == NULL) ||
+    (CU_add_test(pSuite, "vignère without word", test_alphabet_vignere_empty_word) == NULL) ||
     (CU_add_test(pSuite, "morse", test_morse) == NULL) ||
     (CU_add_test(pSuite, "morse realloc", test_morse_small_buffer) == NULL)
   ) {

@@ -1,5 +1,4 @@
-puts HOST
-puts TARGET
+puts "compiling for #{TARGET}"
 
 require 'etc'
 require 'fileutils'
