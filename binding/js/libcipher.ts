@@ -1,7 +1,9 @@
 // import Module from "../../build/release/cipher.js";
 import Module from "../../build/wasm32-unknown-emscripten/release/libcipher/artifacts/cipher.js";
 
-function _strToUTF8WithLength(string: string): [string, number] {
+function _strToUTF8WithLength(string: string): [number | null, number] {
+  if (string.length == 0) return [null, 0];
+
   let bytes = cipher._encoder.encode(string);
   let byte_len = bytes.length * bytes.BYTES_PER_ELEMENT;
   let ptr = cipher._Module._malloc(byte_len);
@@ -13,14 +15,6 @@ function _ptrToStr(ptr: number, len: number): string {
   let outbuffer = cipher._Module.HEAPU8.subarray(ptr, ptr + len);
   return cipher._decoder.decode(outbuffer);
 }
-
-// function _loadNumber(slice: Uint8Array): number {
-//   let value = 0;
-//   for (let i = slice.length - 1; i >= 0; i--) {
-//     value = (value * 256) + slice[i];
-//   }
-//   return value;
-// }
 
 const cipher = {
   _encoder: new TextEncoder(),
@@ -48,6 +42,10 @@ const cipher = {
   },
 
   ascii: function (input: string, output: (result: string) => void) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
     let [inputptr, inputbyte_len] = _strToUTF8WithLength(input);
 
     let outlen = inputbyte_len * 4;
@@ -69,6 +67,10 @@ const cipher = {
   },
 
   reverse_words: function (input: string, output: (result: string) => void) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
     let [inputptr, inputbyte_len] = _strToUTF8WithLength(input);
 
     let outlen = inputbyte_len;
@@ -88,6 +90,10 @@ const cipher = {
   },
 
   caesar: function (input: string, shift: number, output: (result: string) => void) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
     let [inputptr, inputbyte_len] = _strToUTF8WithLength(input);
 
     let outlen = inputbyte_len;
@@ -109,6 +115,10 @@ const cipher = {
   // Alphabet Lookup //
 
   alphabet_lookup: function (input: string, lookup: string, output: (result: string) => void) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
     let [inputptr, inputbyte_len] = _strToUTF8WithLength(input);
 
     let [alphabetptr, alphabetlen] = _strToUTF8WithLength(lookup);
@@ -189,6 +199,10 @@ const cipher = {
   // End Alphabet Lookup //
 
   morse: function (input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
     let og_inputptr = inputptr;
 
