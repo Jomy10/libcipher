@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <cipher.h>
+#include <cipher/internal/utils.h>
 #include <string.h>
 #include <unitypes.h>
 #include <unistr.h>
@@ -45,19 +45,7 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
       return CIPH_ERR_ENCODING;
     }
 
-    switch (uc_wordbreak_property(uc)) {
-      case WBP_CR:
-      case WBP_LF:
-      case WBP_NEWLINE:
-      case WBP_ZWJ:
-      case WBP_FORMAT:
-      case WBP_SQ: // SINGLE QUOTE
-      case WBP_DQ: // DOUBLE QUOTE
-      case WBP_MIDNUM: // punct
-      case WBP_MIDLETTER: // ...
-      case WBP_MIDNUMLET: // ...
-      case WBP_EXTENDNUMLET:
-      case WBP_WSS: // WSegSpace
+    if (ciph_uc_is_wordbreak(uc)) {
         // wordbreak or special character -> copy
         if (word_size > 0) {
           _ciph_reverse_one_word(start_ptr, word_size, &output_ptr);
@@ -69,11 +57,9 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
         output_ptr += uc_len;
 
         start_ptr = input_ptr + 1;
-        break;
-      default:
+    } else {
         // letter -> reverse
         word_size += 1;
-        break;
     }
 
     input_left -= uc_len;

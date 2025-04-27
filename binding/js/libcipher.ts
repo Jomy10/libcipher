@@ -250,6 +250,7 @@ const cipher = {
     }
   },
 
+  // TODO: outputlen not correct
   numbers: function(input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
     if (input.length == 0) {
       output("");
