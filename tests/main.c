@@ -11,6 +11,7 @@ extern void test_alphabet_vignere(void);
 extern void test_alphabet_vignere_empty_word(void);
 extern void test_morse(void);
 extern void test_morse_small_buffer(void);
+extern void test_numbers(void);
 
 FILE* _stderr;
 
@@ -44,7 +45,8 @@ int main(void) {
     (CU_add_test(pSuite, "vignère", test_alphabet_vignere) == NULL) ||
     (CU_add_test(pSuite, "vignère without word", test_alphabet_vignere_empty_word) == NULL) ||
     (CU_add_test(pSuite, "morse", test_morse) == NULL) ||
-    (CU_add_test(pSuite, "morse realloc", test_morse_small_buffer) == NULL)
+    (CU_add_test(pSuite, "morse realloc", test_morse_small_buffer) == NULL) ||
+    (CU_add_test(pSuite, "numbers", test_numbers) == NULL)
   ) {
     CU_cleanup_registry();
     return CU_get_error();

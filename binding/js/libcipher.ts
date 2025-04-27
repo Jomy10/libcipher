@@ -231,17 +231,66 @@ const cipher = {
         if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
         outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
-        // outputlen += _loadNumber(cipher._Module.HEAPU8.slice(add_output_len_ptr, add_output_len_ptr + 4));
 
         inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
 
         input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
-        // let input_len_left = _loadNumber(cipher._Module.HEAPU8.slice(input_len_left_ptr, input_len_left_ptr + 4));
         if (input_len_left == 0) break;
 
         outputcap *= 2;
         outputptr = cipher._Module._realloc(outputptr, outputcap);
-        // console.debug("Reallocated morse buffer");
+      }
+      output(_ptrToStr(outputptr, outputlen));
+    } finally {
+      cipher._Module._free(og_inputptr);
+      cipher._Module._free(outputptr);
+      cipher._Module._free(input_left_ptr);
+      cipher._Module._free(input_len_left_ptr);
+      cipher._Module._free(add_output_len_ptr);
+    }
+  },
+
+  numbers: function(input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
+    let [inputptr, inputlen] = _strToUTF8WithLength(input);
+    let og_inputptr = inputptr;
+
+    let outputlen = 0;
+    let outputcap = inputlen * 4;
+    let outputptr = cipher._Module._malloc(outputcap);
+
+    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+    let input_left_ptr = cipher._Module._malloc(intsize);
+    cipher._Module.HEAP32[input_left_ptr / intsize] = inputptr;
+    let input_len_left = inputlen;
+    let input_len_left_ptr = cipher._Module._malloc(intsize);
+    cipher._Module.HEAP32[input_len_left_ptr / intsize] = inputlen;
+    let add_output_len_ptr = cipher._Module._malloc(intsize);
+    cipher._Module.HEAP32[add_output_len_ptr / intsize] = 0;
+
+    try {
+      while (true) {
+        let ret = cipher._Module._ciph_numbers(
+          inputptr, input_len_left,
+          outputptr + outputlen, outputcap - outputlen,
+          copy_non_encodable_characters,
+          input_left_ptr, input_len_left_ptr,
+          add_output_len_ptr
+        );
+        if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+
+        outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
+
+        inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
+
+        input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
+        if (input_len_left == 0) break;
+
+        outputcap *= 2;
+        outputptr = cipher._Module._realloc(outputptr, outputcap);
       }
       output(_ptrToStr(outputptr, outputlen));
     } finally {
@@ -294,7 +343,13 @@ const cipher = {
     },
     morse: function(input: string, copy_non_encodable_characters: boolean): string {
       let res: string;
-      cipher.morse(input, copy_non_encodable_characters, (e: string) => res = e);
+      cipher.morse(input, copy_non_encodable_characters, (e: string) => res = e.repeat(1));
+      // @ts-ignore
+      return res;
+    },
+    numbers: function(input: string, copy_non_encodable_characters: boolean): string {
+      let res: string;
+      cipher.numbers(input, copy_non_encodable_characters, (e: string) => res = e.repeat(1));
       // @ts-ignore
       return res;
     }

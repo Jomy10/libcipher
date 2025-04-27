@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
 #include <cipher.h>
 #include <unitypes.h>

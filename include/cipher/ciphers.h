@@ -211,6 +211,31 @@ EXPORT ciph_err_t ciph_morse_to_audio(
 );
 #endif
 
+/// Substitute letters by their corresponding number in the alphabet
+///
+/// # Parameters
+/// - `input`: the input text to encode
+/// - `input_len`: the amount of bytes in `input`
+/// - `output`: the buffer in which to output.
+/// - `output_len`: the amount of bytes available in the output buffer
+/// - `copy_non_encodable_characters`: Non-encodable characters will be copied to
+///   the output if `copy_non_encodable_characters` is true. Otherwise they are ignored.
+/// - `input_left`: will be set the point in `input` where encoding has stopped,
+///   otherwise is set to NULL.
+/// - `input_len_left`: the amount of bytes left to encode
+/// - `boutput_len`: the amount of bytes in the output buffer that have
+///   been written to
+///
+/// # Returns
+/// - `CIPH_OK`
+EXPORT ciph_err_t ciph_numbers(
+  const uint8_t* nonnil input, size_t input_len,
+  uint8_t* nonnil output, size_t output_len,
+  bool copy_non_encodable_characters,
+  const uint8_t* nilable * nilable input_left, size_t* nilable input_len_left,
+  size_t* nilable boutput_len
+);
+
 #ifdef __cplusplus
 }
 #endif
