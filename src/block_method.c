@@ -1,6 +1,7 @@
 #include <cipher.h>
 #include <cipher/internal/utils.h>
 #include <math.h>
+#include <assert.h>
 #include <string.h>
 #include <unitypes.h>
 #include <unistr.h>
@@ -18,7 +19,7 @@ static inline int _ciph_encode_one_word(
   uint8_t** nonnil output, size_t output_len
 ) {
   size_t breaks_cap = 16;
-  const uint8_t** breaks = malloc(breaks_cap);
+  const uint8_t** breaks = malloc(breaks_cap * sizeof(uint8_t*));
   const uint8_t** breaks_ptr = breaks;
 
   *breaks_ptr = word;
@@ -27,18 +28,29 @@ static inline int _ciph_encode_one_word(
   const uint8_t* word_end = word + word_len;
 
   while (true) {
-    *breaks_ptr = u8_grapheme_next(*(breaks_ptr - 1), word_end);
+    *breaks_ptr = (const uint8_t*) u8_grapheme_next(*(breaks_ptr - 1), word_end);
     if (*breaks_ptr == NULL) break; // all grapheme clusters found
     breaks_ptr += 1;
     if (breaks + breaks_cap == breaks_ptr) {
       breaks_cap *= 2;
-      breaks = realloc(breaks, breaks_cap);
+      breaks = realloc(breaks, breaks_cap * sizeof(uint8_t*));
     }
   }
 
   size_t word_size = breaks_ptr - breaks - 1; // in grapheme_clusters
+  if (word_size == 1) {
+    if (output_len < 4) {
+      free((void*)breaks);
+      return 1;
+    } else {
+      memcpy(*output, word, 1);
+      memcpy(*output + 1, "XXX", 3);
+      *output += 4;
+      return 0;
+    }
+  }
   size_t n;
-  size_t final_word_size = _ciph_next_perfect_square(word_size, &n);
+  size_t final_word_size =  _ciph_next_perfect_square(word_size, &n);
 
   if (output_len < final_word_size) {
     free((void*)breaks);
@@ -60,6 +72,7 @@ static inline int _ciph_encode_one_word(
       cend = breaks[index + 1];
 
       csize = ISNULL(cend, word + word_len) - cstart;
+      assert(csize > 0);
       memcpy(*output, cstart, csize);
       *output += csize;
     }

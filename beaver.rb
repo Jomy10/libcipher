@@ -51,8 +51,14 @@ if !unistring_vendored
             LDFLAGS=\"-O3 -flto -g0\""
           sh "emmake make -j #{Etc.nprocessors || 0} GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
         else
-          sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\""
-          sh "make -j #{Etc.nprocessors || 0}"
+          sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\" \
+            ac_cv_func_malloc_0_nonnull=yes \
+            ac_cv_func_realloc_0_nonnull=yes \
+            ac_cv_func_free_0_nonnull=yes \
+            --enable-static \
+            --disable-shared
+            "
+          sh "make -j #{Etc.nprocessors || 0}  GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
         end
       rescue => e
         Dir.rmdir(unistr_dir)
@@ -85,6 +91,10 @@ end
 
 Project(name: "libcipher")
 
+sanitize = flag("sanitize", default: true)
+
+puts "sanitize = #{sanitize}"
+
 ciph_cflags = []
 if !flag("no-audio")
   ciph_cflags << "-DCIPH_AUDIO"
@@ -94,6 +104,12 @@ if unistring_vendored
 end
 if TARGET.os == "emscripten"
   ciph_cflags << "-DCIPH_OS_EMSCRIPTEN"
+end
+
+if OPT == "debug" && sanitize
+  ciph_cflags << "-fsanitize=address"
+  # ciph_cflags << "-fsanitize=leak"
+  ciph_cflags << "-fno-omit-frame-pointer"
 end
 
 ciph_linker_flags = []
@@ -114,10 +130,15 @@ if TARGET.os == "emscripten"
   end
 end
 
+if OPT == "debug" && sanitize
+  ciph_linker_flags << "-fsanitize=address"
+  ciph_linker_flags << "-fno-omit-frame-pointer"
+end
+
 C::Library(
   name: "cipher",
   sources: "src/**/*.c",
-  artifacts: TARGET.os == "emscripten" ? [:staticlib, :jslib] : [:staticlib, :dynlib],
+  artifacts: TARGET.os == "emscripten" ? [:staticlib, :jslib] : [:staticlib],
   headers: "include",
   cflags: ciph_cflags,
   linker_flags: ciph_linker_flags,
@@ -133,7 +154,7 @@ unless TARGET.os == "emscripten"
   end
 
   C::Executable(
-    name: "test",
+    name: "cipher_test",
     sources: "tests/**/*.c",
     dependencies: ["cipher", "CUnit:cunit"],
     cflags: test_cflags,
@@ -141,7 +162,11 @@ unless TARGET.os == "emscripten"
   )
 
   cmd "test" do
-    project("libcipher").target("test").run([])
+    if TARGET.os == "emscripten"
+      raise "Unimplemented: need to compile CUnit for wasm as well"
+    end
+
+    project("libcipher").target("cipher_test").run([])
   end
 end
 

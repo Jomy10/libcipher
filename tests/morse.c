@@ -1,5 +1,5 @@
-#include <CUnit/Basic.h>
 #include <cipher.h>
+#include <CUnit/Basic.h>
 #include <unistr.h>
 #include "utils.h"
 

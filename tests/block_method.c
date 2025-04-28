@@ -1,5 +1,5 @@
-#include <CUnit/Basic.h>
 #include <cipher.h>
+#include <CUnit/Basic.h>
 #include <unistr.h>
 #include "utils.h"
 
@@ -52,7 +52,44 @@ void test_block_method_big(void) {
   size_t output_cap = 5;
   uint8_t* output = malloc(output_cap);
 
-  printf("\n");
+  while (true) {
+    ciph_err_t err = ciph_block_method(
+      input, input_len_left,
+      output + output_len, output_cap - output_len,
+      &input, &input_len_left,
+      &add_output_len
+    );
+
+    output_len = output_len + add_output_len;
+
+    if (err != CIPH_OK) {
+      CU_FAIL("non zero return code");
+      return;
+    }
+
+    if (input_len_left == 0) break;
+
+    output_cap *= 2;
+    output = realloc(output, output_cap);
+  }
+
+  CU_ASSERT(input_len_left == 0);
+  CU_ASSERT(output_len == strlen((char*)expected));
+
+  dbgout2(output, output_len, expected, strlen((char*)expected));
+  CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+}
+
+void test_block_method_one_char(void) {
+  const uint8_t* input = (const uint8_t*)"A";
+  const uint8_t* expected = (const uint8_t*)"AXXX";
+
+  size_t input_len_left = strlen((char*)input);
+  size_t add_output_len = 0;
+  size_t output_len = 0;
+  size_t output_cap = 5;
+  uint8_t* output = malloc(output_cap);
+
   while (true) {
     ciph_err_t err = ciph_block_method(
       input, input_len_left,

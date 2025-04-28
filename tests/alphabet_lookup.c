@@ -1,7 +1,7 @@
+#include <cipher.h>
 #include <unistd.h>
 #include <string.h>
 #include <CUnit/Basic.h>
-#include <cipher.h>
 #include <uninorm.h>
 #include <unistr.h>
 #include "utils.h"
