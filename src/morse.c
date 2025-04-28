@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <cipher.h>
 #include <cipher/internal/utils.h>
@@ -19,11 +20,11 @@
 #define DAH "-"
 #endif
 
-#define MAX(A, B) (A > B) ? (A) : (B)
+#define MAX(A, B) ((A > B) ? (A) : (B))
 
 enum { MORSE_CHAR_MAX = MAX(strlen(DIT), strlen(DAH)) * 7 }; // this is an enum so that MORSE_CHAR_MAX is an actual const. See also: https://stackoverflow.com/a/18435398/14874405
 
-#define CIPH_MORSE_CHAR(lit) len = strlen(lit); memcpy(morse_char, lit, len); return len;
+#define CIPH_MORSE_CHAR(lit) len = strlen(lit); assert(len <= MORSE_CHAR_MAX); memcpy(morse_char, lit, len); return len;
 
 static inline int _ciph_morse_char(ucs4_t c, char* morse_char) {
   int len;
@@ -183,6 +184,7 @@ ciph_err_t ciph_morse(
       prev_wrdbrk_size = grapheme_len;
       goto NEXT;
     }
+    prev = ENCODABLE;
 
     morse_char_len = _ciph_morse_char(first_codepoint, morse_char);
     if (morse_char_len == -1) {

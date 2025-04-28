@@ -79,6 +79,7 @@ ciph_err_t ciph_numbers(
       prev_wrdbrk_size = clen;
       goto NEXT;
     }
+    prev = ENCODABLE;
 
     if (clen == 1 && ((*input_ptr >= 'A' && *input_ptr <= 'Z') || (*input_ptr >= 'a' && *input_ptr <= 'z'))) {
       if (*input_ptr >= 'a') {

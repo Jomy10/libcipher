@@ -5,7 +5,7 @@
 
 void test_morse(void) {
   const uint8_t* input = (const uint8_t*)"ABc";
-  const uint8_t* expected = (const uint8_t*)"·— —··· —·—·";
+  const uint8_t* expected = (const uint8_t*)"·- -··· -·-·";
 
   size_t input_len_left;
   size_t output_len;
@@ -31,7 +31,7 @@ void test_morse(void) {
 
 void test_morse_small_buffer(void) {
   const uint8_t* input = (const uint8_t*)"ABcä";
-  const uint8_t* expected = (const uint8_t*)"·— —··· —·—· ·—·—";
+  const uint8_t* expected = (const uint8_t*)"·- -··· -·-· ·-·-";
 
   size_t input_len_left = strlen((char*)input);
   size_t add_output_len = 0;
@@ -72,7 +72,7 @@ void test_morse_small_buffer(void) {
 
 void test_morse_multi_word(void) {
   const uint8_t* input = (const uint8_t*)"ABc DeF";
-  const uint8_t* expected = (const uint8_t*)"·— —··· —·—· / —·· · ··—·";
+  const uint8_t* expected = (const uint8_t*)"·- -··· -·-· / -·· · ··-·";
 
   size_t input_len_left = strlen((char*)input);
   size_t add_output_len = 0;
@@ -114,7 +114,7 @@ void test_morse_multi_word(void) {
 
 void test_morse_sentence(void) {
   const uint8_t* input = (const uint8_t*)"ABc DeF. AD";
-  const uint8_t* expected = (const uint8_t*)"·— —··· —·—· / —·· · ··—· // ·— —··";
+  const uint8_t* expected = (const uint8_t*)"·- -··· -·-· / -·· · ··-· // ·- -··";
 
   size_t input_len_left = strlen((char*)input);
   size_t add_output_len = 0;
