@@ -15,6 +15,8 @@ extern void test_morse_multi_word(void);
 extern void test_morse_sentence(void);
 extern void test_numbers(void);
 extern void test_numbers_sentence(void);
+extern void test_block_method(void);
+extern void test_block_method_big(void);
 
 FILE* _stderr;
 
@@ -52,7 +54,9 @@ int main(void) {
     (CU_add_test(pSuite, "morse multi word", test_morse_multi_word) == NULL) ||
     (CU_add_test(pSuite, "morse sentence", test_morse_sentence) == NULL) ||
     (CU_add_test(pSuite, "numbers", test_numbers) == NULL) ||
-    (CU_add_test(pSuite, "numbers sentence", test_numbers_sentence) == NULL)
+    (CU_add_test(pSuite, "numbers sentence", test_numbers_sentence) == NULL) ||
+    (CU_add_test(pSuite, "block method", test_block_method) == NULL) ||
+    (CU_add_test(pSuite, "block method big word", test_block_method_big) == NULL)
   ) {
     CU_cleanup_registry();
     return CU_get_error();

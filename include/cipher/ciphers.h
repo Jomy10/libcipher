@@ -228,12 +228,48 @@ EXPORT ciph_err_t ciph_morse_to_audio(
 ///
 /// # Returns
 /// - `CIPH_OK`
+/// - `CIPH_ERR_ENCODING`: if input is invalid UTF-8
 EXPORT ciph_err_t ciph_numbers(
   const uint8_t* nonnil input, size_t input_len,
   uint8_t* nonnil output, size_t output_len,
   bool copy_non_encodable_characters,
   const uint8_t* nilable * nilable input_left, size_t* nilable input_len_left,
   size_t* nilable boutput_len
+);
+
+/// Transforms words into blocks and reads them column by column.
+///
+/// This function works on grapheme clusters. A grapheme cluster
+/// will be seen as one letter in the schema below. (e.g. P)
+///
+/// # Example
+/// word: Pionierhout
+/// becomes:
+///   PION
+///   IERH
+///   OUTX
+///   XXXX
+/// encoded: PIOXIEUXORTXNHXX
+///
+/// # Parameters
+/// - `input`: the input text to encode
+/// - `input_len`: the amount of bytes in `input`
+/// - `output`: the buffer in which to output.
+/// - `output_len`: the amount of bytes available in the output buffer
+/// - `input_left`: will be set the point in `input` where encoding has stopped,
+///   otherwise is set to NULL.
+/// - `input_len_left`: the amount of bytes left to encode
+/// - `out_output_len`: the amount of bytes in the output buffer that have
+///   been written to
+///
+/// # Returns
+/// - `CIPH_OK`
+/// - `CIPH_ERR_ENCODING`: if input is invalid UTF-8
+EXPORT ciph_err_t ciph_block_method(
+  const uint8_t* nonnil input, size_t input_len,
+  uint8_t* nonnil output, size_t output_len,
+  const uint8_t* nilable * nilable input_left, size_t* nilable input_len_left,
+  size_t* nilable out_output_len
 );
 
 #ifdef __cplusplus

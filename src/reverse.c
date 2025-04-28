@@ -59,7 +59,7 @@ ciph_err_t ciph_reverse_words(const uint8_t* nonnil input, size_t input_len, uin
         start_ptr = input_ptr + 1;
     } else {
         // letter -> reverse
-        word_size += 1;
+        word_size += uc_len;
     }
 
     input_left -= uc_len;

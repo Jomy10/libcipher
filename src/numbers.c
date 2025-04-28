@@ -122,14 +122,14 @@ ciph_err_t ciph_numbers(
 
   if (out_input_left != nil) *out_input_left = NULL;
   if (out_input_len_left != nil) *out_input_len_left = 0;
-  if (out_output_len != nil) *out_output_len = output_len;
+  if (out_output_len != nil) *out_output_len = output_len - output_left;
 
   return CIPH_OK;
 
   // There is more input to be parsed
 RET_NEXT:
-  if (out_input_left != nil) *out_input_left = input;
+  if (out_input_left != nil) *out_input_left = input_ptr;
   if (out_input_len_left != nil) *out_input_len_left = input_left;
-  if (out_output_len != nil) *out_output_len = output_len;
+  if (out_output_len != nil) *out_output_len = output_len - output_left;
   return CIPH_OK;
 }
