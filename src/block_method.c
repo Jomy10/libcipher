@@ -29,11 +29,11 @@ static inline int _ciph_encode_one_word(
   while (true) {
     *breaks_ptr = u8_grapheme_next(*(breaks_ptr - 1), word_end);
     if (*breaks_ptr == NULL) break; // all grapheme clusters found
+    breaks_ptr += 1;
     if (breaks + breaks_cap == breaks_ptr) {
       breaks_cap *= 2;
       breaks = realloc(breaks, breaks_cap);
     }
-    breaks_ptr += 1;
   }
 
   size_t word_size = breaks_ptr - breaks - 1; // in grapheme_clusters

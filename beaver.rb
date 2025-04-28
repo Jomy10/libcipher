@@ -49,7 +49,7 @@ if !unistring_vendored
             --disable-shared \
             CFLAGS=\"-O3 -flto -g0\" \
             LDFLAGS=\"-O3 -flto -g0\""
-          sh "emmake make -j #{Etc.nprocessors || 0}"
+          sh "emmake make -j #{Etc.nprocessors || 0} GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
         else
           sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\""
           sh "make -j #{Etc.nprocessors || 0}"
