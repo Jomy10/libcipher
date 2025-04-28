@@ -354,6 +354,90 @@ const cipher = {
     }
   },
 
+  alphabet_substitution: function (
+    input: string,
+    substitution_alphabet: string[],
+    char_sep: string,
+    word_sep: string,
+    sentence_sep: string,
+    copy_non_encodable_characters: boolean,
+    output: (result: string) => void
+  ) {
+    if (input.length == 0) {
+      output("");
+      return;
+    }
+    let [inputptr, inputlen] = _strToUTF8WithLength(input);
+    let og_inputptr = inputptr;
+
+    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+
+    let subptr = cipher._Module._malloc(26 * intsize);
+    let free_list: number[] = [];
+    for (let i: number = 0; i < 26; i++) {
+      let [ptr, len] = _strToUTF8WithLength(substitution_alphabet[i]);
+      cipher._Module.HEAP32[(subptr + intsize) + i * 2] = ptr!;
+      cipher._Module.HEAP32[(subptr + intsize) + i * 2 + 1] = len;
+      free_list.push(ptr!);
+    }
+
+    let [char_sep_ptr, char_sep_len] = _strToUTF8WithLength(char_sep);
+    let [word_sep_ptr, word_sep_len] = _strToUTF8WithLength(word_sep);
+    let [sentence_sep_ptr, sentence_sep_len] = _strToUTF8WithLength(sentence_sep);
+
+    let outputlen = 0;
+    let outputcap = inputlen * 4;
+    let outputptr = cipher._Module._malloc(outputcap);
+
+    let input_left_ptr = cipher._Module._malloc(intsize);
+    cipher._Module.HEAP32[input_left_ptr / intsize] = inputptr;
+    let input_len_left = inputlen;
+    let input_len_left_ptr = cipher._Module._malloc(intsize);
+    cipher._Module.HEAP32[input_len_left_ptr / intsize] = inputlen;
+    let add_output_len_ptr = cipher._Module._malloc(intsize);
+    cipher._Module.HEAP32[add_output_len_ptr / intsize] = 0;
+
+    try {
+      while (true) {
+        let ret = cipher._Module._ciph_char_alph_sub(
+          inputptr!, input_len_left,
+          outputptr! + outputlen, outputcap - outputlen,
+          subptr,
+          char_sep_ptr!, char_sep_len,
+          word_sep_ptr!, word_sep_len,
+          sentence_sep_ptr!, sentence_sep_len,
+          copy_non_encodable_characters,
+          input_left_ptr!, input_len_left_ptr!,
+          add_output_len_ptr!
+        );
+        if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+
+        outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
+
+        inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
+
+        input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
+        if (input_len_left == 0) break;
+
+        outputcap *= 2;
+        outputptr = cipher._Module._realloc(outputptr, outputcap);
+      }
+      output(_ptrToStr(outputptr, outputlen));
+    } finally {
+      cipher._Module._free(og_inputptr);
+      cipher._Module._free(outputptr);
+      cipher._Module._free(input_left_ptr);
+      cipher._Module._free(input_len_left_ptr);
+      cipher._Module._free(add_output_len_ptr);
+      cipher._Module._free(char_sep_ptr);
+      cipher._Module._free(word_sep_ptr);
+      cipher._Module._free(sentence_sep_ptr);
+      for (let ptr of free_list) {
+        cipher._Module._free(ptr);
+      }
+    }
+  },
+
   /** @module copy
    * Copy versions of the cipher functions. Here the output is copied before being
    * returned which eliminates the need for scoping, but adds an extra allocation.
@@ -408,6 +492,24 @@ const cipher = {
     block_method: function(input: string): string {
       let res: string;
       cipher.block_method(input, (e: string) => res = e.repeat(1));
+      // @ts-ignore
+      return res;
+    },
+    alphabet_substitution: function (
+      input: string,
+      substitution_alphabet: string[],
+      char_sep: string,
+      word_sep: string,
+      sentence_sep: string,
+      copy_non_encodable_characters: boolean,
+    ) {
+      let res: string;
+      cipher.alphabet_substitution(
+        input, substitution_alphabet,
+        char_sep, word_sep, sentence_sep,
+        copy_non_encodable_characters,
+        (output: string) => res = output.repeat(1)
+      );
       // @ts-ignore
       return res;
     }
