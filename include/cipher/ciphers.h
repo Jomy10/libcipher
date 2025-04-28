@@ -272,6 +272,55 @@ EXPORT ciph_err_t ciph_block_method(
   size_t* nilable out_output_len
 );
 
+typedef struct {
+  const uint8_t* nonnil sub;
+  size_t len;
+} ciph_SubAlphabetElement_t;
+
+/// A substitution cipher. Like alphabet lookup, but supports substituting one
+/// character by many other characters.
+///
+/// This version of the substitution separates characters and words by a separator.
+///
+/// - `input`: the input text to encode
+/// - `input_len`: the amount of bytes in `input`
+/// - `output`: the buffer in which to output.
+/// - `output_len`: the amount of bytes available in the output buffer
+/// - `substituion_alphabet`: the characters which will replace the characters
+///   in the alphabet (from A to Z). This buffer should have 26 elements.
+/// - `char_sep`: the separator to use between characters
+/// - `char_sep_len`: the length of `char_sep` in bytes
+/// - `word_sep`: the separator to use between words
+/// - `word_sep_len`: the length of `word_sep` in bytes
+/// - `sentence_sep`: the separator to use between sentences.
+/// - `sentence_sep_len`: the length of `sentence_sep` in bytes
+/// - `copy_non_encodable_characters`: wether to copy characters that aren't encoded
+///   and don't constiute a word or sentence break.
+/// - `out_input_left`: will be set the point in `input` where encoding has stopped,
+///   otherwise is set to NULL.
+/// - `out_input_len_left`: the amount of bytes left to encode
+/// - `out_output_len`: the amount of bytes in the output buffer that have
+///   been written to
+///
+/// # Returns
+/// - `CIPH_OK`
+/// - `CIPH_ERR_ENCODING`: if input is invalid UTF-8
+EXPORT ciph_err_t ciph_char_alph_sub(
+  const uint8_t* nonnil input, size_t input_len,
+  uint8_t* nonnil output, size_t output_len,
+
+  const ciph_SubAlphabetElement_t* nonnil substitution_alphabet,
+
+  const uint8_t* nilable char_sep, size_t char_sep_len,
+  const uint8_t* nilable word_sep, size_t word_sep_len,
+  const uint8_t* nilable sentence_sep, size_t sentence_sep_len,
+
+  bool copy_non_encodable_characters,
+
+  const uint8_t* nilable * nilable out_input_left, size_t* nilable out_input_len_left,
+  size_t* nilable out_output_len
+);
+
 #ifdef __cplusplus
 }
 #endif

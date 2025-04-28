@@ -19,6 +19,7 @@ extern void test_numbers_sentence(void);
 extern void test_block_method(void);
 extern void test_block_method_big(void);
 extern void test_block_method_one_char(void);
+extern void test_alph_sub(void);
 
 FILE* _stderr;
 
@@ -59,7 +60,8 @@ int main(void) {
     (CU_add_test(pSuite, "numbers sentence", test_numbers_sentence) == NULL) ||
     (CU_add_test(pSuite, "block method", test_block_method) == NULL) ||
     (CU_add_test(pSuite, "block method big word", test_block_method_big) == NULL) ||
-    (CU_add_test(pSuite, "block method one char", test_block_method_one_char) == NULL)
+    (CU_add_test(pSuite, "block method one char", test_block_method_one_char) == NULL) ||
+    (CU_add_test(pSuite, "alphabet substitution", test_alph_sub) == NULL)
   ) {
     CU_cleanup_registry();
     return CU_get_error();

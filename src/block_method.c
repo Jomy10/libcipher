@@ -97,7 +97,6 @@ ciph_err_t ciph_block_method(
 
   uint8_t* output_ptr = output;
   uint8_t* output_end = output + output_len;
-  // size_t output_left = output_len;
 
   const uint8_t* word_start_ptr = input;
   int word_size = 0; // in bytes
