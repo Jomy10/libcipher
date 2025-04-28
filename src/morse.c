@@ -16,7 +16,7 @@
 #ifdef CIPH_DAH
 #define DAH CIPH_DAH
 #else
-#define DAH "—"
+#define DAH "-"
 #endif
 
 #define MAX(A, B) (A > B) ? (A) : (B)

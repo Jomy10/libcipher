@@ -155,7 +155,7 @@ EXPORT ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input
 
 //=== End Alphabet Lookup ===//
 
-/// Encode a message in morse code using "·" and "—", separated by spaces.
+/// Encode a message in morse code using "·" and "-", separated by spaces.
 /// The characters used to encode morse can be altered at compile time by
 /// defining `CIPH_DIT` and `CIPH_DAH` macros to a string containing the
 /// required character.
