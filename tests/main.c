@@ -14,6 +14,7 @@ extern void test_morse_small_buffer(void);
 extern void test_morse_multi_word(void);
 extern void test_morse_sentence(void);
 extern void test_numbers(void);
+extern void test_numbers_sentence(void);
 
 FILE* _stderr;
 
@@ -50,7 +51,8 @@ int main(void) {
     (CU_add_test(pSuite, "morse realloc", test_morse_small_buffer) == NULL) ||
     (CU_add_test(pSuite, "morse multi word", test_morse_multi_word) == NULL) ||
     (CU_add_test(pSuite, "morse sentence", test_morse_sentence) == NULL) ||
-    (CU_add_test(pSuite, "numbers", test_numbers) == NULL)
+    (CU_add_test(pSuite, "numbers", test_numbers) == NULL) ||
+    (CU_add_test(pSuite, "numbers sentence", test_numbers_sentence) == NULL)
   ) {
     CU_cleanup_registry();
     return CU_get_error();

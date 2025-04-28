@@ -127,6 +127,7 @@ ciph_err_t ciph_morse(
   int first_codepoint_len;
 
   enum MorsePrev prev = ENCODABLE;
+  size_t prev_wrdbrk_size = 0;
 
   while (true) {
     next = u8_grapheme_next(input_ptr, input_end);
@@ -146,11 +147,10 @@ ciph_err_t ciph_morse(
     }
     if (uc_is_property_sentence_terminal(first_codepoint) || uc_is_property_terminal_punctuation(first_codepoint)) {
       if (prev == TERMINAL) {
-        input_ptr += 1;
-        continue;
+        goto NEXT;
       } else if (prev == WRDBRK) {
         if (output_left < 1) { // reverse last and reencode next pass
-          input_ptr -= 1;
+          input_ptr -= prev_wrdbrk_size;
           output_left += 2;
           output_ptr -= 2;
           break;
@@ -159,21 +159,19 @@ ciph_err_t ciph_morse(
           *output_ptr = ' ';
           output_left -= 1;
           output_ptr += 1;
-          input_ptr += 1;
+          goto NEXT;
         }
       }
       if (output_left < 3) break;
       memcpy(output_ptr, "// ", 3);
       output_ptr += 3;
       output_left -= 3;
-      input_ptr += 1;
       prev = TERMINAL;
-      continue;
+      goto NEXT;
     }
     if (ciph_uc_is_wordbreak(first_codepoint)) {
       if (prev != ENCODABLE) {
-        input_ptr += 1;
-        continue;
+        goto NEXT;
       };
       if (output_left < 2) break;
       *output_ptr = '/';
@@ -181,9 +179,9 @@ ciph_err_t ciph_morse(
       *output_ptr = ' ';
       output_ptr += 1;
       output_left -= 2;
-      input_ptr += 1;
       prev = WRDBRK;
-      continue;
+      prev_wrdbrk_size = grapheme_len;
+      goto NEXT;
     }
 
     morse_char_len = _ciph_morse_char(first_codepoint, morse_char);
@@ -211,6 +209,7 @@ ciph_err_t ciph_morse(
       }
     }
 
+  NEXT:
     input_ptr = next;
   }
 
