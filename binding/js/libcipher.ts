@@ -372,7 +372,7 @@ const cipher = {
 
     let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
 
-    let subptr = cipher._Module._malloc(26 * intsize);
+    let subptr = cipher._Module._malloc(26 * intsize * 2);
     let free_list: number[] = [];
     for (let i: number = 0; i < 26; i++) {
       let [ptr, len] = _strToUTF8WithLength(substitution_alphabet[i]);
