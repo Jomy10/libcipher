@@ -13,6 +13,8 @@ Currently, this library supports the following ciphers:
 - Caesar
 - Reverse words
 - Morse
+- Letter to number
+- Block method
 
 ## Examples
 
@@ -74,6 +76,8 @@ the `--build-for-node` option can be used.
 ```sh
 beaver --target wasm32-unknown-emscripten -o -- --build-unistring --build-for-node
 ```
+
+*You might have to enable node compatibility layer when running in deno*
 
 ## testing
 

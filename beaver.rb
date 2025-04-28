@@ -42,12 +42,16 @@ if !unistring_vendored
             ac_cv_search_nanosleep=no \
             ac_cv_have_decl_sleep=no \
             ac_cv_func_malloc_0_nonnull=yes \
+            ac_cv_func_realloc_0_nonnull=yes \
+            ac_cv_func_free_0_nonnull=yes \
             --disable-threads \
             --enable-static \
-            --disable-shared"
+            --disable-shared \
+            CFLAGS=\"-O3 -flto -g0\" \
+            LDFLAGS=\"-O3 -flto -g0\""
           sh "emmake make -j #{Etc.nprocessors || 0}"
         else
-          sh "./configure"
+          sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\""
           sh "make -j #{Etc.nprocessors || 0}"
         end
       rescue => e
@@ -88,18 +92,19 @@ end
 if unistring_vendored
   ciph_cflags << "-DCIPH_UNISTRING_VENDORED"
 end
+if TARGET.os == "emscripten"
+  ciph_cflags << "-DCIPH_OS_EMSCRIPTEN"
+end
 
 ciph_linker_flags = []
 if TARGET.os == "emscripten"
   ciph_linker_flags.append *[
-    # "-s", "LINKABLE=1",
     "-s", "EXPORT_ALL=1",
     "-s", "EXPORTED_RUNTIME_METHODS=['ccall', 'stringToNewUTF8', 'UTF8ToString']",
     "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc']",
     "-s", "EXPORT_ES6=1",
     "-s", "MODULARIZE=1",
     "-s", "ALLOW_MEMORY_GROWTH=1",
-    # "-s", "MALLOC=none"
   ]
 
   # When this flag is specified, it will build the js module for running inside

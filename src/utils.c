@@ -1,3 +1,4 @@
+#include <cipher/internal/unistring_config.h>
 #include <cipher/internal/utils.h>
 #include <uniwbrk.h>
 
@@ -20,3 +21,16 @@ bool ciph_uc_is_wordbreak(ucs4_t uc) {
       return false;
   }
 }
+
+// fix undefined symbols when compiling for web
+#ifdef CIPH_OS_EMSCRIPTEN
+  #include <stdlib.h>
+
+  void* rpl_malloc(size_t s) {
+    return malloc(s);
+  }
+
+  void rpl_free(void* p) {
+    free(p);
+  }
+#endif
