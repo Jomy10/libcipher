@@ -376,8 +376,8 @@ const cipher = {
     let free_list: number[] = [];
     for (let i: number = 0; i < 26; i++) {
       let [ptr, len] = _strToUTF8WithLength(substitution_alphabet[i]);
-      cipher._Module.HEAP32[(subptr + intsize) + i * 2] = ptr!;
-      cipher._Module.HEAP32[(subptr + intsize) + i * 2 + 1] = len;
+      cipher._Module.HEAP32[(subptr / intsize) + i * 2] = ptr!;
+      cipher._Module.HEAP32[(subptr / intsize) + i * 2 + 1] = len;
       free_list.push(ptr!);
     }
 
