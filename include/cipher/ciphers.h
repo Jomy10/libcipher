@@ -2,17 +2,11 @@
 #define _CIPH_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <unitypes.h>
 #include "error.h"
 #include "internal/nil.h"
-#include <stdbool.h>
-
-#ifdef __EMSCRIPTEN__
-#include <emscripten/emscripten.h>
-#define EXPORT EMSCRIPTEN_KEEPALIVE
-#else
-#define EXPORT
-#endif
+#include "internal/defines.h"
 
 
 #ifdef __cplusplus
@@ -31,8 +25,7 @@ extern "C" {
 /// # Parameters
 /// - `input`: the input to encode (must be valid ASCII)
 /// - `input_len`: the amount of characters (excluding any nul-terminator) in `input`
-/// - `output`: the buffer to output to. This buffer should have a size of `input_len * 4`.
-///   The buffer will be terminated by a nul-terminator
+/// - `output`: the buffer to output to. This buffer should have a size of `input_len * 4 - 1`.
 ///
 /// # Returns
 /// `CIPH_OK`
@@ -282,6 +275,7 @@ typedef struct {
 ///
 /// This version of the substitution separates characters and words by a separator.
 ///
+/// # Parameters
 /// - `input`: the input text to encode
 /// - `input_len`: the amount of bytes in `input`
 /// - `output`: the buffer in which to output.
@@ -319,6 +313,46 @@ EXPORT ciph_err_t ciph_char_alph_sub(
 
   const uint8_t* nilable * nilable out_input_left, size_t* nilable out_input_len_left,
   size_t* nilable out_output_len
+);
+
+typedef struct {
+  /// Wether the input has been fully parsed into year components
+  bool completed;
+
+  struct _ciph_YearComponent* nilable comps;
+  int comps_len;
+  int max_char_len;
+
+  int char_idx;
+  int comp_idx;
+} ciph_year_ires_t;
+
+/// A cipher where the code is a year (4 digit number).
+///
+/// # Parameters
+/// - `input`: the input text to encode
+/// - `input_len`: the amount of bytes in `input`
+/// - `output`: the buffer in which to output.
+/// - `output_len`: the amount of bytes available in the output buffer
+/// - `year`: a 4 digit number
+/// - `ir`: the intermediate result. As long is the output has not been completely
+///   written out (return CIPH_GROW), this memory will not be freed. When CIPH_OK
+///   (encoding has finished), or an error (!= CIPH_GROW) is returned, `ir` will
+///   be freed.
+///   At least `completed` variable needs to be set to 0 (false)
+/// - `out_output_written`: the amount of bytes in the output buffer that have
+///   been written to
+///
+/// # Returns
+/// - `CIPH_OK`
+/// - `CIPH_ERR_ENCODING`: when the input is invalid UTF-8
+EXPORT ciph_err_t ciph_year(
+  const uint8_t* nonnil input, size_t input_len,
+  uint8_t year[nonnil 4],
+  uint32_t char_include_bitmask,
+  uint8_t* nonnil output, size_t output_len,
+  ciph_year_ires_t* nonnil ir,
+  size_t* nonnil out_output_written
 );
 
 #ifdef __cplusplus

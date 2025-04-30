@@ -42,7 +42,6 @@ void test_alph_sub(void) {
   sub[24] = (ciph_SubAlphabetElement_t){(const uint8_t*)"y", 1};
   sub[25] = (ciph_SubAlphabetElement_t){(const uint8_t*)"z", 1};
 
-  printf("\n");
   while (true) {
     ciph_err_t err = ciph_char_alph_sub(
       input, input_len_left,
@@ -77,4 +76,6 @@ void test_alph_sub(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }

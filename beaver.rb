@@ -96,6 +96,7 @@ sanitize = flag("sanitize", default: true)
 puts "sanitize = #{sanitize}"
 
 ciph_cflags = []
+# ciph_cflags << "-std=c11"
 if !flag("no-audio")
   ciph_cflags << "-DCIPH_AUDIO"
 end
@@ -162,11 +163,14 @@ unless TARGET.os == "emscripten"
   )
 
   cmd "test" do
-    if TARGET.os == "emscripten"
-      raise "Unimplemented: need to compile CUnit for wasm as well"
-    end
-
     project("libcipher").target("cipher_test").run([])
+  end
+else
+  cmd "test" do
+    sh "beaver cipher -o --target #{TARGET} -- --build-unistring --build-for-node"
+    Dir.chdir("tests/binding/js") do
+      sh "bun test"
+    end
   end
 end
 

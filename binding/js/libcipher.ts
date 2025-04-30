@@ -48,7 +48,7 @@ const cipher = {
     }
     let [inputptr, inputbyte_len] = _strToUTF8WithLength(input);
 
-    let outlen = inputbyte_len * 4;
+    let outlen = inputbyte_len * 4 - 1;
     let outptr = cipher._Module._malloc(outlen);
     let outstring: string;
 

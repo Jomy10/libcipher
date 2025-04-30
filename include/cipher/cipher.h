@@ -54,3 +54,4 @@
 
 #include "error.h"
 #include "ciphers.h"
+#include "alloc.h"

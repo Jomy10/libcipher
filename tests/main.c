@@ -4,6 +4,7 @@
 
 extern void test_ascii(void);
 extern void test_reverse(void);
+extern void test_reverse_grapheme(void);
 extern void test_caesar(void);
 extern void test_caesar_negative(void);
 extern void test_alphabet_lookup(void);
@@ -20,6 +21,7 @@ extern void test_block_method(void);
 extern void test_block_method_big(void);
 extern void test_block_method_one_char(void);
 extern void test_alph_sub(void);
+extern void test_year(void);
 
 FILE* _stderr;
 
@@ -46,6 +48,7 @@ int main(void) {
   if (
     (CU_add_test(pSuite, "ascii test", test_ascii) == NULL) ||
     (CU_add_test(pSuite, "reverse word", test_reverse) == NULL) ||
+    (CU_add_test(pSuite, "reverse word with grapheme", test_reverse_grapheme) == NULL) ||
     (CU_add_test(pSuite, "caesar", test_caesar) == NULL) ||
     (CU_add_test(pSuite, "caesar negative shift", test_caesar_negative) == NULL) ||
     (CU_add_test(pSuite, "alphabet lookup", test_alphabet_lookup) == NULL) ||
@@ -61,7 +64,8 @@ int main(void) {
     (CU_add_test(pSuite, "block method", test_block_method) == NULL) ||
     (CU_add_test(pSuite, "block method big word", test_block_method_big) == NULL) ||
     (CU_add_test(pSuite, "block method one char", test_block_method_one_char) == NULL) ||
-    (CU_add_test(pSuite, "alphabet substitution", test_alph_sub) == NULL)
+    (CU_add_test(pSuite, "alphabet substitution", test_alph_sub) == NULL) ||
+    (CU_add_test(pSuite, "year", test_year) == NULL)
   ) {
     CU_cleanup_registry();
     return CU_get_error();

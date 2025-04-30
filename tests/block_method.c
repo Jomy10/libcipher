@@ -39,6 +39,8 @@ void test_block_method(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }
 
 /// Test with bigger word + emojis and diacritics (check if grapheme clusters working)
@@ -78,6 +80,8 @@ void test_block_method_big(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }
 
 void test_block_method_one_char(void) {
@@ -116,4 +120,6 @@ void test_block_method_one_char(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }

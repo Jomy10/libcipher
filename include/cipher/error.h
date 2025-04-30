@@ -4,8 +4,15 @@
 typedef enum {
   CIPH_OK = 0,
 
+  /// Need more memory in the output buffer
+  CIPH_GROW,
+
   /// The input had an invalid encoding
   CIPH_ERR_ENCODING,
+
+  /// An error in the digits;
+  /// - all digits are 0
+  CIPH_ERR_YEAR_DIGITS
 } ciph_err_t;
 
 #ifdef __cplusplus

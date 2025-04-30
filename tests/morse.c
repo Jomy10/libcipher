@@ -68,6 +68,8 @@ void test_morse_small_buffer(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }
 
 void test_morse_multi_word(void) {
@@ -110,6 +112,8 @@ void test_morse_multi_word(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }
 
 void test_morse_sentence(void) {
@@ -152,4 +156,6 @@ void test_morse_sentence(void) {
 
   dbgout2(output, output_len, expected, strlen((char*)expected));
   CU_ASSERT(u8_cmp2(output, output_len, expected, strlen((char*)expected)) == 0);
+
+  free(output);
 }
