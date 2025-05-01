@@ -4,10 +4,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <unitypes.h>
+#include <unictype.h>
 #include "error.h"
 #include "internal/nil.h"
 #include "internal/defines.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -326,6 +326,18 @@ typedef struct {
   int char_idx;
   int comp_idx;
 } ciph_year_ires_t;
+
+#define CIPH_YEAR_INCLUDE_MASK_LETTERS UC_CATEGORY_MASK_L
+#define CIPH_YEAR_INCLUDE_MASK_LETTERS_AND_NUMBERS UC_CATEGORY_MASK_L | UC_CATEGORY_MASK_N
+#define CIPH_YEAR_INCLUDE_MASK_WITH_SYMBOLS UC_CATEGORY_MASK_L | UC_CATEGORY_MASK_N | UC_CATEGORY_MASK_Sm
+#define CIPH_YEAR_INCLUDE_MASK_WITH_SYMBOLS_AND_DASHES UC_CATEGORY_MASK_L | UC_CATEGORY_MASK_N | UC_CATEGORY_MASK_Pd | UC_CATEGORY_MASK_Sm
+
+#ifdef __EMSCRIPTEN__
+EXPORT uint32_t ciph_year_include_mask_letters();
+EXPORT uint32_t ciph_year_include_mask_letters_and_numbers();
+EXPORT uint32_t ciph_year_include_mask_with_symbols();
+EXPORT uint32_t ciph_year_include_mask_with_symbols_and_dashes();
+#endif
 
 /// A cipher where the code is a year (4 digit number).
 ///

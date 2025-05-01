@@ -10,7 +10,7 @@ static inline void _ctoa_ascii_base10(unsigned char in, char* nonnil out) {
 ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil output) {
   for (size_t i = 0; i < input_len; i++) {
     _ctoa_ascii_base10(input[i], &output[i * 4]);
-    output[i * 4 + 3] = ' ';
+    if (i + 1 != input_len) output[i * 4 + 3] = ' ';
   }
 
   // output[input_len * 4 - 1] = '\0';

@@ -38,7 +38,9 @@ const cipher = {
 
   Err: {
     OK: 0,
-    ERR_ENCODING: 1,
+    GROW: 1,
+    ERR_ENCODING: 2,
+    ERR_YEAR_DIGITS: 3
   },
 
   ascii: function (input: string, output: (result: string) => void) {
@@ -438,6 +440,49 @@ const cipher = {
     }
   },
 
+  year: function(
+    input: string,
+    year: string,
+    include_bitmask: number,
+    output: (result: string) => void
+  ) {
+    if (year.length != 4)
+      return cipher.Err.ERR_YEAR_DIGITS;
+
+    let [inputptr, inputlen] = _strToUTF8WithLength(input);
+    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+    let outputptrptr = cipher._Module._malloc(intsize);
+    let outputlen = cipher._Module._malloc(intsize);
+    let yearptr = cipher._Module._malloc(4);
+
+    for (let i = 0; i < 4; i += 1) {
+      cipher._Module.HEAPU8[yearptr + i] = parseInt(year[i], 10);
+    }
+
+    try {
+      cipher._Module._ciph_alloc_year(
+        inputptr, inputlen,
+        yearptr,
+        include_bitmask,
+        outputptrptr, outputlen
+      );
+
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      output(_ptrToStr(outputptr, cipher._Module.HEAP32[outputlen / intsize]));
+    } finally {
+      cipher._Module._free(inputptr);
+      cipher._Module._free(outputptrptr);
+      cipher._Module._free(outputlen);
+      cipher._Module._free(yearptr);
+    }
+  },
+  include_bitmasks: {
+    letters: function () { return cipher._Module._ciph_year_include_mask_letters(); },
+    letters_and_numbers: function () { return cipher._Module._ciph_year_include_mask_letters_and_numbers(); },
+    with_symbols: function () { return cipher._Module._ciph_year_include_mask_with_symbols(); },
+    with_symbols_and_dashes: function () { return cipher._Module._ciph_year_include_mask_with_symbols_and_dashes(); },
+  },
+
   /** @module copy
    * Copy versions of the cipher functions. Here the output is copied before being
    * returned which eliminates the need for scoping, but adds an extra allocation.
@@ -510,6 +555,16 @@ const cipher = {
         copy_non_encodable_characters,
         (output: string) => res = output.repeat(1)
       );
+      // @ts-ignore
+      return res;
+    },
+    year: function(
+      input: string,
+      year: string,
+      include_bitmask: number,
+    ) {
+      let res: string;
+      cipher.year(input, year, include_bitmask, (output: string) => res = output.repeat(1));
       // @ts-ignore
       return res;
     }

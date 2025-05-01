@@ -22,15 +22,19 @@ bool ciph_uc_is_wordbreak(ucs4_t uc) {
   }
 }
 
-// fix undefined symbols when compiling for web
-// #ifdef CIPH_OS_EMSCRIPTEN
-//   #include <stdlib.h>
+#ifdef __EMSCRIPTEN__
+#include <cipher/ciphers.h>
 
-//   void* rpl_malloc(size_t s) {
-//     return malloc(s);
-//   }
-
-//   void rpl_free(void* p) {
-//     free(p);
-//   }
-// #endif
+uint32_t ciph_year_include_mask_letters() {
+  return CIPH_YEAR_INCLUDE_MASK_LETTERS;
+}
+uint32_t ciph_year_include_mask_letters_and_numbers() {
+  return CIPH_YEAR_INCLUDE_MASK_LETTERS_AND_NUMBERS;
+}
+uint32_t ciph_year_include_mask_with_symbols() {
+  return CIPH_YEAR_INCLUDE_MASK_WITH_SYMBOLS;
+}
+uint32_t ciph_year_include_mask_with_symbols_and_dashes() {
+  return CIPH_YEAR_INCLUDE_MASK_WITH_SYMBOLS_AND_DASHES;
+}
+#endif
