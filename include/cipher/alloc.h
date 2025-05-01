@@ -48,7 +48,7 @@ EXPORT ciph_err_t ciph_alloc_char_alph_sub(
   const uint8_t* nilable word_sep, size_t word_sep_len,
   const uint8_t* nilable sentence_sep, size_t sentence_sep_len,
   bool copy_non_encodable_characters,
-  uint8_t* nilable * nonnil output, size_t* nilable output_len
+  uint8_t* nilable * nonnil output, size_t* nonnil output_len
 );
 
 EXPORT ciph_err_t ciph_alloc_year(

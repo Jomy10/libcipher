@@ -200,108 +200,68 @@ const cipher = {
 
   // End Alphabet Lookup //
 
-  morse: function (input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
+  morse: function(input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
     if (input.length == 0) {
       output("");
       return;
     }
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
-    let og_inputptr = inputptr;
-
-    let outputlen = 0;
-    let outputcap = inputlen * 4;
-    let outputptr = cipher._Module._malloc(outputcap);
 
     let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let input_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_left_ptr / intsize] = inputptr;
-    let input_len_left = inputlen;
-    let input_len_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_len_left_ptr / intsize] = inputlen;
-    let add_output_len_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[add_output_len_ptr / intsize] = 0;
+    let outputptrptr = cipher._Module._malloc(intsize);
+    let outputlenptr = cipher._Module._malloc(intsize);
 
     try {
-      while (true) {
-        let ret = cipher._Module._ciph_morse(
-          inputptr, input_len_left,
-          outputptr + outputlen, outputcap - outputlen,
-          copy_non_encodable_characters,
-          input_left_ptr, input_len_left_ptr,
-          add_output_len_ptr
-        );
-        if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+      let ret = cipher._Module._ciph_alloc_morse(
+        inputptr, inputlen,
+        copy_non_encodable_characters,
+        outputptrptr, outputlenptr
+      );
 
-        outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
+      if (ret != cipher.Err.OK) throw new Error(ret);
 
-        inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
-
-        input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
-        if (input_len_left == 0) break;
-
-        outputcap *= 2;
-        outputptr = cipher._Module._realloc(outputptr, outputcap);
-      }
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
       output(_ptrToStr(outputptr, outputlen));
     } finally {
-      cipher._Module._free(og_inputptr);
+      cipher._Module._free(inputptr);
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       cipher._Module._free(outputptr);
-      cipher._Module._free(input_left_ptr);
-      cipher._Module._free(input_len_left_ptr);
-      cipher._Module._free(add_output_len_ptr);
+      cipher._Module._free(outputptrptr);
+      cipher._Module._free(outputlenptr);
     }
   },
 
-  // TODO: outputlen not correct
   numbers: function(input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
     if (input.length == 0) {
       output("");
       return;
     }
-    let [inputptr, inputlen] = _strToUTF8WithLength(input);
-    let og_inputptr = inputptr;
 
-    let outputlen = 0;
-    let outputcap = inputlen * 4;
-    let outputptr = cipher._Module._malloc(outputcap);
+    let [inputptr, inputlen] = _strToUTF8WithLength(input);
 
     let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let input_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_left_ptr / intsize] = inputptr;
-    let input_len_left = inputlen;
-    let input_len_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_len_left_ptr / intsize] = inputlen;
-    let add_output_len_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[add_output_len_ptr / intsize] = 0;
+    let outputptrptr = cipher._Module._malloc(intsize);
+    let outputlenptr = cipher._Module._malloc(intsize);
 
     try {
-      while (true) {
-        let ret = cipher._Module._ciph_numbers(
-          inputptr, input_len_left,
-          outputptr + outputlen, outputcap - outputlen,
-          copy_non_encodable_characters,
-          input_left_ptr, input_len_left_ptr,
-          add_output_len_ptr
-        );
-        if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+      let ret = cipher._Module._ciph_alloc_numbers(
+        inputptr, inputlen,
+        copy_non_encodable_characters,
+        outputptrptr, outputlenptr
+      );
 
-        outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
+      if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
-        inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
-
-        input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
-        if (input_len_left == 0) break;
-
-        outputcap *= 2;
-        outputptr = cipher._Module._realloc(outputptr, outputcap);
-      }
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
       output(_ptrToStr(outputptr, outputlen));
     } finally {
-      cipher._Module._free(og_inputptr);
+      cipher._Module._free(inputptr);
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       cipher._Module._free(outputptr);
-      cipher._Module._free(input_left_ptr);
-      cipher._Module._free(input_len_left_ptr);
-      cipher._Module._free(add_output_len_ptr);
+      cipher._Module._free(outputptrptr);
+      cipher._Module._free(outputlenptr);
     }
   },
 
@@ -311,48 +271,27 @@ const cipher = {
       return;
     }
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
-    let og_inputptr = inputptr;
-
-    let outputlen = 0;
-    let outputcap = inputlen * 4;
-    let outputptr = cipher._Module._malloc(outputcap);
 
     let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let input_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_left_ptr / intsize] = inputptr;
-    let input_len_left = inputlen;
-    let input_len_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_len_left_ptr / intsize] = inputlen;
-    let add_output_len_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[add_output_len_ptr / intsize] = 0;
+    let outputptrptr = cipher._Module._malloc(intsize);
+    let outputlenptr = cipher._Module._malloc(intsize);
 
     try {
-      while (true) {
-        let ret = cipher._Module._ciph_block_method(
-          inputptr, input_len_left,
-          outputptr + outputlen, outputcap - outputlen,
-          input_left_ptr, input_len_left_ptr,
-          add_output_len_ptr
-        );
-        if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+      let ret = cipher._Module._ciph_alloc_block_method(
+        inputptr, inputlen,
+        outputptrptr, outputlenptr
+      );
+      if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
-        outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
-
-        inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
-
-        input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
-        if (input_len_left == 0) break;
-
-        outputcap *= 2;
-        outputptr = cipher._Module._realloc(outputptr, outputcap);
-      }
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
       output(_ptrToStr(outputptr, outputlen));
     } finally {
-      cipher._Module._free(og_inputptr);
+      cipher._Module._free(inputptr);
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       cipher._Module._free(outputptr);
-      cipher._Module._free(input_left_ptr);
-      cipher._Module._free(input_len_left_ptr);
-      cipher._Module._free(add_output_len_ptr);
+      cipher._Module._free(outputptrptr);
+      cipher._Module._free(outputlenptr);
     }
   },
 
@@ -369,10 +308,13 @@ const cipher = {
       output("");
       return;
     }
-    let [inputptr, inputlen] = _strToUTF8WithLength(input);
-    let og_inputptr = inputptr;
 
     let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+
+    let [inputptr, inputlen] = _strToUTF8WithLength(input);
+
+    let outputptrptr = cipher._Module._malloc(intsize);
+    let outputlenptr = cipher._Module._malloc(intsize);
 
     let subptr = cipher._Module._malloc(26 * intsize * 2);
     let free_list: number[] = [];
@@ -387,50 +329,27 @@ const cipher = {
     let [word_sep_ptr, word_sep_len] = _strToUTF8WithLength(word_sep);
     let [sentence_sep_ptr, sentence_sep_len] = _strToUTF8WithLength(sentence_sep);
 
-    let outputlen = 0;
-    let outputcap = inputlen * 4;
-    let outputptr = cipher._Module._malloc(outputcap);
-
-    let input_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_left_ptr / intsize] = inputptr;
-    let input_len_left = inputlen;
-    let input_len_left_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[input_len_left_ptr / intsize] = inputlen;
-    let add_output_len_ptr = cipher._Module._malloc(intsize);
-    cipher._Module.HEAP32[add_output_len_ptr / intsize] = 0;
-
     try {
-      while (true) {
-        let ret = cipher._Module._ciph_char_alph_sub(
-          inputptr!, input_len_left,
-          outputptr! + outputlen, outputcap - outputlen,
-          subptr,
-          char_sep_ptr!, char_sep_len,
-          word_sep_ptr!, word_sep_len,
-          sentence_sep_ptr!, sentence_sep_len,
-          copy_non_encodable_characters,
-          input_left_ptr!, input_len_left_ptr!,
-          add_output_len_ptr!
-        );
-        if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+      let err = cipher._Module._ciph_alloc_char_alph_sub(
+        inputptr, inputlen,
+        subptr,
+        char_sep_ptr, char_sep_len,
+        word_sep_ptr, word_sep_len,
+        sentence_sep_ptr, sentence_sep_len,
+        copy_non_encodable_characters,
+        outputptrptr, outputlenptr
+      );
+      if (err != cipher.Err.OK) throw new cipher.Error(err);
 
-        outputlen += cipher._Module.HEAP32[add_output_len_ptr / intsize];
-
-        inputptr = cipher._Module.HEAP32[input_left_ptr / intsize];
-
-        input_len_left = cipher._Module.HEAP32[input_len_left_ptr / intsize];
-        if (input_len_left == 0) break;
-
-        outputcap *= 2;
-        outputptr = cipher._Module._realloc(outputptr, outputcap);
-      }
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
       output(_ptrToStr(outputptr, outputlen));
     } finally {
-      cipher._Module._free(og_inputptr);
+      cipher._Module._free(inputptr);
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       cipher._Module._free(outputptr);
-      cipher._Module._free(input_left_ptr);
-      cipher._Module._free(input_len_left_ptr);
-      cipher._Module._free(add_output_len_ptr);
+      cipher._Module._free(outputptrptr);
+      cipher._Module._free(outputlenptr);
       cipher._Module._free(char_sep_ptr);
       cipher._Module._free(word_sep_ptr);
       cipher._Module._free(sentence_sep_ptr);
@@ -448,6 +367,10 @@ const cipher = {
   ) {
     if (year.length != 4)
       return cipher.Err.ERR_YEAR_DIGITS;
+    if (input.length == 0) {
+      output("");
+      return;
+    }
 
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
     let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
@@ -471,6 +394,8 @@ const cipher = {
       output(_ptrToStr(outputptr, cipher._Module.HEAP32[outputlen / intsize]));
     } finally {
       cipher._Module._free(inputptr);
+      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      cipher._Module._free(outputptr);
       cipher._Module._free(outputptrptr);
       cipher._Module._free(outputlen);
       cipher._Module._free(yearptr);

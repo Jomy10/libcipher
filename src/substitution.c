@@ -5,8 +5,6 @@
 #include <unigbrk.h>
 #include <unictype.h>
 
-#define DBG(len) printf("output_left = %lu\n", len)
-
 #define MAX(a, b) ((a > b) ? (a) : (b))
 
 enum SubPrev {
@@ -34,6 +32,7 @@ ciph_err_t ciph_char_alph_sub(
   const uint8_t* input_end = input + input_len;
 
   uint8_t* output_ptr = output;
+  uint8_t* output_end = output + output_len;
   size_t output_left = output_len;
 
   ucs4_t codepoint;
@@ -128,6 +127,7 @@ ciph_err_t ciph_char_alph_sub(
 
   if (input_ptr == input_end) {
     if (prev == ENCODABLE) {
+      output_ptr -= 1;
       output_left += 1; // remove trailing .
     }
 

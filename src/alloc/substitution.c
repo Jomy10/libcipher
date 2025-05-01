@@ -11,7 +11,7 @@ ciph_err_t ciph_alloc_char_alph_sub(
   const uint8_t* nilable word_sep, size_t word_sep_len,
   const uint8_t* nilable sentence_sep, size_t sentence_sep_len,
   bool copy_non_encodable_characters,
-  uint8_t* nilable * nonnil output, size_t* nilable out_output_len
+  uint8_t* nilable * nonnil output, size_t* nonnil out_output_len
 ) {
   size_t input_len_left = input_len;
   size_t add_output_len = 0;
@@ -21,9 +21,14 @@ ciph_err_t ciph_alloc_char_alph_sub(
 
   ciph_err_t err;
   while (true) {
-    err = ciph_block_method(
+    err = ciph_char_alph_sub(
       input, input_len,
       *output + output_len, output_cap - output_len,
+      substitution_alphabet,
+      char_sep, char_sep_len,
+      word_sep, word_sep_len,
+      sentence_sep, sentence_sep_len,
+      copy_non_encodable_characters,
       &input, &input_len_left,
       &add_output_len
     );
@@ -37,12 +42,13 @@ ciph_err_t ciph_alloc_char_alph_sub(
     }
 
     if (input_len_left == 0) break;
+    input_len = input_len_left;
 
     output_cap *= 2;
     *output = realloc(*output, output_cap);
   }
 
-  if (out_output_len != NULL) *out_output_len = output_len;
+  *out_output_len = output_len;
 
   return CIPH_OK;
 }
