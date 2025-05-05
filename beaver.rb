@@ -147,7 +147,7 @@ C::Library(
 if TARGET.os == "emscripten" && web_mode
 # TODO: make post "build"
   cmd "build-js" do
-    Dir.mkdir_p "build/js" unless Dir.exist? "build/js"
+    FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
     sh "tsc -d \
       --declarationMap \
       --sourceMap \
