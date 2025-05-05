@@ -154,7 +154,6 @@ if TARGET.os == "emscripten" && web_mode
       -t es2024 \
       -m es2022 \
       --removeComments \
-      --strict \
       binding/js/libcipher.ts --outDir build/js"
   end
 end
