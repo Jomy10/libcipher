@@ -1,5 +1,3 @@
-puts "compiling for #{TARGET}"
-
 require 'etc'
 require 'fileutils'
 
@@ -72,7 +70,6 @@ if !unistring_vendored
     FileUtils.cp(File.join(unistr_dir, "config.h"), "include/cipher/internal/unistring_config.h")
   end
 
-  # /opt/homebrew/Cellar/emscripten/4.0.7/libexec/emcc -DHAVE_CONFIG_H -DNO_XMALLOC -I. -I..  -I. -I. -I.. -I.. -DIN_LIBUNISTRING -DDEPENDS_ON_LIBICONV=1 -I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/icu4c@76/include -I/opt/homebrew/opt/sqlite/include  -g -O2 -c unictype/pr_titlecase.c
   unistring_dep = flags(
     [
       "-I#{File.realpath(File.join(unistr_dir, "lib"))}",
@@ -92,8 +89,6 @@ end
 Project(name: "libcipher")
 
 sanitize = flag("sanitize", default: true)
-
-puts "sanitize = #{sanitize}"
 
 ciph_cflags = []
 # ciph_cflags << "-std=c11"
@@ -126,7 +121,8 @@ if TARGET.os == "emscripten"
 
   # When this flag is specified, it will build the js module for running inside
   # of node instead of on the web
-  if !flag("build-for-node")
+  web_mode = !flag("build-for-node")
+  if web_mode
     ciph_linker_flags.append *["-s", "ENVIRONMENT=web"]
   end
 end
@@ -147,6 +143,21 @@ C::Library(
     unistring_dep,
   ]
 )
+
+if TARGET.os == "emscripten" && web_mode
+# TODO: make post "build"
+  cmd "build-js" do
+    Dir.mkdir_p "build/js" unless Dir.exist? "build/js"
+    sh "tsc -d \
+      --declarationMap \
+      --sourceMap \
+      -t es2024 \
+      -m es2022 \
+      --removeComments \
+      --strict \
+      binding/js/libcipher.ts --outDir build/js"
+  end
+end
 
 unless TARGET.os == "emscripten"
   test_cflags = []
