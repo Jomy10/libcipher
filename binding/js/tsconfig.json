@@ -9,6 +9,7 @@
     "removeComments": true,
     "outDir": "../../build/js",
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "@libcipher_build/*": ["../../build/wasm32-unknown-emscripten/release/libcipher/artifacts/*"]
     }
