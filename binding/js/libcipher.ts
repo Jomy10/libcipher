@@ -1,5 +1,5 @@
 // import Module from "../../build/release/cipher.js";
-import Module from "../../build/wasm32-unknown-emscripten/release/libcipher/artifacts/cipher.js";
+import Module from "@libcipher_build/cipher.js";
 
 function _strToUTF8WithLength(string: string): [number | null, number] {
   if (string.length == 0) return [null, 0];

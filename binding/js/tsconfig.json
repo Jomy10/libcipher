@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "target": "es2024",
+    "module": "es2022",
+    "removeComments": true,
+    "outDir": "../../build/js",
+    "baseUrl": ".",
+    "paths": {
+      "@libcipher_build/*": ["../../build/wasm32-unknown-emscripten/release/libcipher/artifacts/*"]
+    }
+  }
+}

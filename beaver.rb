@@ -117,13 +117,16 @@ if TARGET.os == "emscripten"
     "-s", "EXPORT_ES6=1",
     "-s", "MODULARIZE=1",
     "-s", "ALLOW_MEMORY_GROWTH=1",
+    "-s", "STRICT=1"
   ]
 
   # When this flag is specified, it will build the js module for running inside
   # of node instead of on the web
   web_mode = !flag("build-for-node")
   if web_mode
-    ciph_linker_flags.append *["-s", "ENVIRONMENT=web"]
+    ciph_linker_flags.append *["-s", "ENVIRONMENT=web,worker"]
+  else
+    ciph_linker_flags.append *["-s", "ENVIRONMENT=node"]
   end
 end
 
@@ -148,13 +151,21 @@ if TARGET.os == "emscripten" && web_mode
 # TODO: make post "build"
   cmd "build-js" do
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
-    sh "tsc -d \
-      --declarationMap \
-      --sourceMap \
-      -t es2024 \
-      -m es2022 \
-      --removeComments \
-      binding/js/libcipher.ts --outDir build/js"
+
+    Dir.chdir("binding/js") do
+      sh "tsc -p ./tsconfig.json"
+    end
+    # sh "tsc -p ./binding/js/tsconfig.json"
+
+    #   sh "tsc binding/js/libcipher.ts"
+    # end
+    # sh "tsc -d \
+    #   --declarationMap \
+    #   --sourceMap \
+    #   -t es2024 \
+    #   -m es2022 \
+    #   --removeComments \
+    #   binding/js/libcipher.ts --outDir build/js"
   end
 end
 
