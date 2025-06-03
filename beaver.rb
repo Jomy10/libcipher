@@ -147,7 +147,7 @@ C::Library(
   ]
 )
 
-if TARGET.os == "emscripten" && web_mode
+if TARGET.os == "emscripten"
 # TODO: make post "build"
   cmd "build-js" do
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
@@ -155,17 +155,6 @@ if TARGET.os == "emscripten" && web_mode
     Dir.chdir("binding/js") do
       sh "tsc -p ./tsconfig.json"
     end
-    # sh "tsc -p ./binding/js/tsconfig.json"
-
-    #   sh "tsc binding/js/libcipher.ts"
-    # end
-    # sh "tsc -d \
-    #   --declarationMap \
-    #   --sourceMap \
-    #   -t es2024 \
-    #   -m es2022 \
-    #   --removeComments \
-    #   binding/js/libcipher.ts --outDir build/js"
   end
 end
 
