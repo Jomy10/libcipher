@@ -153,7 +153,8 @@ if TARGET.os == "emscripten"
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
 
     Dir.chdir("binding/js") do
-      sh "tsc -p ./tsconfig.json"
+      sh "bun build.ts #{web_mode ? "browser" : "node"}"
+      # sh "tsc -p ./tsconfig.json"
     end
   end
 end
