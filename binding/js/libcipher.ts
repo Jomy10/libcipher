@@ -29,6 +29,7 @@ const cipher = {
       switch (code) {
         case cipher.Err.OK: message = "OK"; break;
         case cipher.Err.ERR_ENCODING: message = "input is not valid UTF-8"; break;
+        case cipher.Err.ERR_YEAR_DIGITS: message = "`year` should contain exactly 4 digits"; break;
       }
       super(message!);
       this.name = "CipherError";
