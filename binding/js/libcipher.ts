@@ -366,7 +366,7 @@ const cipher = {
     output: (result: string) => void
   ) {
     if (year.length != 4)
-      return cipher.Err.ERR_YEAR_DIGITS;
+      throw new cipher.Error(cipher.Err.ERR_YEAR_DIGITS);
     if (input.length == 0) {
       output("");
       return;
