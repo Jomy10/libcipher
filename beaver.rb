@@ -147,13 +147,14 @@ C::Library(
   ]
 )
 
+minify_js = flag("minify", default: true)
 if TARGET.os == "emscripten"
 # TODO: make post "build"
   cmd "build-js" do
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
 
     Dir.chdir("binding/js") do
-      sh "bun build.ts #{web_mode ? "browser" : "node"}"
+      sh "bun build.ts #{web_mode ? "browser" : "node"} #{minify_js ? "--minify" : "--no-minify"}"
       # sh "tsc -p ./tsconfig.json"
     end
   end
