@@ -12,7 +12,10 @@ typedef enum {
 
   /// An error in the digits;
   /// - all digits are 0
-  CIPH_ERR_YEAR_DIGITS
+  CIPH_ERR_YEAR_DIGITS,
+
+  /// An invalid character was found in the input
+  CIPH_ERR_MORSE_AUDIO_INVALID_CHAR
 } ciph_err_t;
 
 #ifdef __cplusplus

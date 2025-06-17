@@ -86,13 +86,21 @@ else
   unistring_dep = flags([], ["-lunistring"])
 end
 
+use_audio = !flag("no-audio")
+
+# if use_audio
+#   if !Dir.exist? "deps/libwave"
+#     sh "git clone https://github.com/brglng/libwave deps/libwave"
+#   end
+#   import_cmake "deps/libwave", ["-DBUILD_SHARED_LIBS=NO"]
+# end
+
 Project(name: "libcipher")
 
 sanitize = flag("sanitize", default: true)
 
 ciph_cflags = []
-# ciph_cflags << "-std=c11"
-if !flag("no-audio")
+if use_audio
   ciph_cflags << "-DCIPH_AUDIO"
 end
 if unistring_vendored
@@ -135,6 +143,10 @@ if OPT == "debug" && sanitize
   ciph_linker_flags << "-fno-omit-frame-pointer"
 end
 
+ciph_deps = [
+  unistring_dep,
+]
+
 C::Library(
   name: "cipher",
   sources: "src/**/*.c",
@@ -142,9 +154,7 @@ C::Library(
   headers: "include",
   cflags: ciph_cflags,
   linker_flags: ciph_linker_flags,
-  dependencies: [
-    unistring_dep,
-  ]
+  dependencies: ciph_deps
 )
 
 minify_js = flag("minify", default: true)
