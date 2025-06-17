@@ -212,8 +212,6 @@ const cipher = {
     const outputlenptr = cipher._Module._malloc(intsize);
 
     try {
-      console.log("encoding", input);
-      console.log(_ptrToStr(inputptr, inputlen), inputptr);
       const ret = cipher._Module._ciph_alloc_morse(
         inputptr, inputlen,
         copy_non_encodable_characters,
@@ -272,7 +270,6 @@ const cipher = {
 
       const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       const outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      console.log(typeof cipher._Module.HEAP32.subarray(outputptr, outputptr + outputlen));
       output(cipher._Module.HEAPU8.subarray(outputptr, outputptr + outputlen));
     } finally {
       if (morseOutputPtr != null) cipher._Module._free(morseOutputPtr);

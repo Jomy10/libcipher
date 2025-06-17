@@ -12,25 +12,28 @@
 #include <unistd.h>
 #include <unistr.h>
 
-#include <stdio.h>
-
-#ifdef CIPH_DIT
+#ifdef __EMSCRIPTEN__
+  #define DIT 46
+  #define DAH 45
 #else
-#define DIT "."
-#endif
+  #ifdef CIPH_DIT
+  #else
+  #define DIT "."
+  #endif
 
-#ifdef CIPH_DAH
-#define DAH CIPH_DAH
-#else
-#define DAH "-"
+  #ifdef CIPH_DAH
+  #define DAH CIPH_DAH
+  #else
+  #define DAH "-"
+  #endif
+
+  enum {
+    MORSE_DIT_LEN = strlen(DIT),
+    MORSE_DAH_LEN = strlen(DAH),
+  };
 #endif
 
 #define MAX(A, B) ((A > B) ? (A) : (B))
-
-enum {
-  MORSE_DIT_LEN = strlen(DIT),
-  MORSE_DAH_LEN = strlen(DAH),
-};
 
 // #define SAMPLE_RATE 44100
 #define BITRATE 16
@@ -65,8 +68,6 @@ ciph_err_t ciph_morse_to_audio(
   const uint8_t* nilable * nilable out_input_end_ptr,
   size_t* nonnil out_output_written
 ) {
-  printf("input = %.*s\n", (int)morse_code_len, morse_code);
-
   ciph_err_t err = CIPH_OK;
 
   const uint8_t* input_ptr = morse_code;
@@ -84,11 +85,17 @@ ciph_err_t ciph_morse_to_audio(
   ucs4_t uc_word_divider;
   int uc_word_divider_len;
 
-  assert(u8_mbtouc(&uc_dit, (uint8_t*)DIT, MORSE_DIT_LEN) == MORSE_DIT_LEN);
-  assert(u8_mbtouc(&uc_dah, (uint8_t*)DAH, MORSE_DAH_LEN) == MORSE_DAH_LEN);
-  uc_space_len = u8_mbtouc(&uc_space, (uint8_t*)" ", strlen(" "));
-  uc_word_divider_len = u8_mbtouc(&uc_word_divider, (uint8_t*)"/", strlen("/"));
-  assert(uc_dit != 0xfffd && uc_dah != 0xfffd && uc_space != 0xfffd && uc_word_divider != 0xfffd);
+  #ifdef __EMSCRIPTEN__
+    uc_dit = DIT;
+    uc_dah = DAH;
+  #else
+    assert(u8_mbtouc(&uc_dit, (uint8_t*)DIT, MORSE_DIT_LEN) == MORSE_DIT_LEN);
+    assert(u8_mbtouc(&uc_dah, (uint8_t*)DAH, MORSE_DAH_LEN) == MORSE_DAH_LEN);
+    uc_space_len = u8_mbtouc(&uc_space, (uint8_t*)" ", strlen(" "));
+    uc_word_divider_len = u8_mbtouc(&uc_word_divider, (uint8_t*)"/", strlen("/"));
+    assert(uc_dit != 0xfffd && uc_dah != 0xfffd && uc_space != 0xfffd && uc_word_divider != 0xfffd
+        && uc_dit != 0 && uc_dah != 0 && uc_space != 0 && uc_word_divider != 0);
+  #endif
 
   uint8_t* output_ptr = wave_data;
   const uint8_t* output_end = wave_data + wave_data_len;
@@ -120,7 +127,6 @@ ciph_err_t ciph_morse_to_audio(
     assert(output_left > 0);
     uc_size = u8_mbtouc(&uc, input_ptr, input_left);
     if (uc == 0xfffd) {
-      printf("%c %d %d %d\n", *input_ptr, input_left, uc_size, uc);
       err = CIPH_ERR_ENCODING;
       goto cleanup;
     }
