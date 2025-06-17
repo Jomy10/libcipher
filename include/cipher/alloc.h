@@ -31,8 +31,8 @@ EXPORT ciph_err_t ciph_alloc_morse(
 #ifdef CIPH_AUDIO
 EXPORT ciph_err_t ciph_alloc_morse_to_audio(
   const uint8_t* nonnil morse_code, size_t morse_code_len,
-  double secs_per_dit,
-  unsigned char* nonnil * nonnil wave_data,
+  double secs_per_dit, int sample_rate,
+  unsigned char* nonnil * nilable wave_data,
   size_t* nonnil wave_data_len
 );
 #endif

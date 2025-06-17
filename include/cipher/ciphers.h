@@ -190,24 +190,27 @@ EXPORT ciph_err_t ciph_morse(
 );
 
 #ifdef CIPH_AUDIO
-/// Turn morse code into audio
+/// Turn morse code into audio.
+///
+/// The output is 16 bits mono
 ///
 /// # Parameters
 /// - `morse_code`: The string containing the morse code (only `DIT`, `DAH` and the standard separators ' ' and '/' are allowed,
 ///   see `ciph_morse` for more info)
 /// - `morse_code_len`: the length, in bytes, of `morse_code`
 /// - `secs_per_dit`: the amount of seconds one dit lasts. 0.25 is a good default
+/// - `sample_rate`: the output sample rate
 /// - `wave_data`: the output raw wave data
 /// - `wave_data_len`: the amount of bytes available in `wave_data`
 /// - `out_input_end_ptr`: the ptr in of `morse_code` where encoding stopped,
 ///   is equal to `morse_code + morse_code_len` if encoding ended
-/// - `out_output_end_ptr`: the ptr where the output ended
+/// - `out_output_written`: the amount of bytes written to the output buffer
 EXPORT ciph_err_t ciph_morse_to_audio(
   const uint8_t* nonnil morse_code, size_t morse_code_len,
-  double secs_per_dit,
+  double secs_per_dit, int sample_rate,
   unsigned char* nonnil wave_data, size_t wave_data_len,
   const uint8_t* nilable * nilable out_input_end_ptr,
-  uint8_t* nonnil * nilable out_output_end_ptr
+  size_t* nonnil out_output_written
 );
 #endif
 

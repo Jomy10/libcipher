@@ -121,12 +121,16 @@ if TARGET.os == "emscripten"
   ciph_linker_flags.append *[
     "-s", "EXPORT_ALL=1",
     "-s", "EXPORTED_RUNTIME_METHODS=['ccall', 'stringToNewUTF8', 'UTF8ToString']",
-    "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc']",
+    "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc', '_strlen', '_ciph_strerror']",
     "-s", "EXPORT_ES6=1",
     "-s", "MODULARIZE=1",
     "-s", "ALLOW_MEMORY_GROWTH=1",
-    "-s", "STRICT=1"
+    "-s", "STRICT=1",
   ]
+
+  if use_audio
+    ciph_linker_flags.append *["-s", "STACK_SIZE=5MB"]
+  end
 
   # When this flag is specified, it will build the js module for running inside
   # of node instead of on the web

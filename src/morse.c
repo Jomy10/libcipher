@@ -11,7 +11,7 @@
 #ifdef CIPH_DIT
 #define DIT CIPH_DIT
 #else
-#define DIT "·"
+#define DIT "."
 #endif
 
 #ifdef CIPH_DAH

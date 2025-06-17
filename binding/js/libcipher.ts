@@ -25,12 +25,14 @@ const cipher = {
     code: number;
 
     constructor(code: number) {
-      let message: string;
-      switch (code) {
-        case cipher.Err.OK: message = "OK"; break;
-        case cipher.Err.ERR_ENCODING: message = "input is not valid UTF-8"; break;
-        case cipher.Err.ERR_YEAR_DIGITS: message = "`year` should contain exactly 4 digits"; break;
-      }
+      let messagePtr = cipher._Module._ciph_strerror(code);
+      let message = _ptrToStr(messagePtr, cipher._Module._strlen(messagePtr));
+      // switch (code) {
+      //   case cipher.Err.OK: message = "OK"; break;
+      //   case cipher.Err.ERR_ENCODING: message = "input is not valid UTF-8"; break;
+      //   case cipher.Err.ERR_YEAR_DIGITS: message = "`year` should contain exactly 4 digits"; break;
+      //   case cipher.Err.ERR_MORSE_AUDIO_INVALID_CHAR: message = "Invalid character found in morse input"; break;
+      // }
       super(message!);
       this.name = "CipherError";
       this.code = code;
@@ -41,7 +43,8 @@ const cipher = {
     OK: 0,
     GROW: 1,
     ERR_ENCODING: 2,
-    ERR_YEAR_DIGITS: 3
+    ERR_YEAR_DIGITS: 3,
+    ERR_MORSE_AUDIO_INVALID_CHAR: 4
   },
 
   ascii: function (input: string, output: (result: string) => void) {
@@ -201,61 +204,78 @@ const cipher = {
 
   // End Alphabet Lookup //
 
-  morse: function(input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
-    if (input.length == 0) {
-      output("");
-      return;
-    }
-    let [inputptr, inputlen] = _strToUTF8WithLength(input);
-
-    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let outputptrptr = cipher._Module._malloc(intsize);
-    let outputlenptr = cipher._Module._malloc(intsize);
-
-    try {
-      let ret = cipher._Module._ciph_alloc_morse(
-        inputptr, inputlen,
-        copy_non_encodable_characters,
-        outputptrptr, outputlenptr
-      );
-
-      if (ret != cipher.Err.OK) throw new Error(ret);
-
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      output(_ptrToStr(outputptr, outputlen));
-    } finally {
-      cipher._Module._free(inputptr);
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      cipher._Module._free(outputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlenptr);
-    }
-  },
-
-  morse_to_audio: function(morse: string, secs_per_dit: number, output: (wave_data: Uint8Array) => void) {
-    const [inputptr, inputlen] = _strToUTF8WithLength(morse);
+  _morse_common: function(input: string, copy_non_encodable_characters: boolean): [number, number] {
+    const [inputptr, inputlen] = _strToUTF8WithLength(input);
 
     const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
     const outputptrptr = cipher._Module._malloc(intsize);
     const outputlenptr = cipher._Module._malloc(intsize);
 
     try {
-      const ret = cipher._Module._ciph_alloc_morse_to_audio(
+      console.log("encoding", input);
+      console.log(_ptrToStr(inputptr, inputlen), inputptr);
+      const ret = cipher._Module._ciph_alloc_morse(
         inputptr, inputlen,
-        secs_per_dit,
-        outputptrptr,
-        outputlenptr
+        copy_non_encodable_characters,
+        outputptrptr, outputlenptr
       );
 
-      if (ret != cipher.Err.OK) throw new Error(ret);
+      if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
       const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       const outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      const data = cipher._Module.HEAPU8.subarray(outputptr, outputptr + outputlen);
-      output(data);
+
+      return [outputptr, outputlen];
     } finally {
       cipher._Module._free(inputptr);
+      cipher._Module._free(outputptrptr);
+      cipher._Module._free(outputlenptr);
+    }
+  },
+
+  morse: function(input: string, copy_non_encodable_characters: boolean, output: (result: string) => void) {
+    if (input == "") {
+      output("");
+      return;
+    }
+
+    let [outputptr, outputlen]: [number | null, number | null] = [null, null];
+    try {
+      [outputptr, outputlen] = cipher._morse_common(input, copy_non_encodable_characters);
+      output(_ptrToStr(outputptr, outputlen));
+    } finally {
+      if (outputptr != null) cipher._Module._free(outputptr);
+    }
+  },
+
+  morse_audio: function(input: string, secs_per_dit: number, sample_rate: number, output: (wave_data: Uint8Array) => void) {
+    if (input.length == 0) {
+      output(new Uint8Array());
+      return;
+    }
+
+    let [morseOutputPtr, morseOutputLen]: [number | null, number | null] = [null, null];
+
+    const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+    const outputptrptr = cipher._Module._malloc(intsize);
+    const outputlenptr = cipher._Module._malloc(intsize);
+
+    try {
+      [morseOutputPtr, morseOutputLen] = cipher._morse_common(input, false);
+      const ret = cipher._Module._ciph_alloc_morse_to_audio(
+        morseOutputPtr, morseOutputLen,
+        secs_per_dit, sample_rate,
+        outputptrptr, outputlenptr
+      );
+
+      if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+
+      const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
+      const outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
+      console.log(typeof cipher._Module.HEAP32.subarray(outputptr, outputptr + outputlen));
+      output(cipher._Module.HEAPU8.subarray(outputptr, outputptr + outputlen));
+    } finally {
+      if (morseOutputPtr != null) cipher._Module._free(morseOutputPtr);
       const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
       cipher._Module._free(outputptr);
       cipher._Module._free(outputptrptr);
@@ -484,15 +504,15 @@ const cipher = {
       // @ts-ignore
       return res;
     },
-    morseToAudio: function(morse: string, secs_per_dit: number): Uint8Array {
-      let res: Uint8Array;
-      cipher.morse_to_audio(morse, secs_per_dit, (wave_data) => {
-        res = new Uint8Array(wave_data.byteLength);
-        res.set(wave_data, 0);
-      });
-      // @ts-ignore
-      return res;
-    },
+    // morse_to_audio: function(morse: string, secs_per_dit: number): Uint8Array {
+    //   let res: Uint8Array;
+    //   cipher.morse_to_audio(morse, secs_per_dit, (wave_data) => {
+    //     res = new Uint8Array(wave_data.byteLength);
+    //     res.set(wave_data, 0);
+    //   });
+    //   // @ts-ignore
+    //   return res;
+    // },
     numbers: function(input: string, copy_non_encodable_characters: boolean): string {
       let res: string;
       cipher.numbers(input, copy_non_encodable_characters, (e: string) => res = e.repeat(1));

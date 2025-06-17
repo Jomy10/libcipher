@@ -29,7 +29,7 @@ test("alphabet lookup", () => {
 });
 
 test("morse", () => {
-  expect(cipher.copy.morse("ABc DeF. AD", true)).toBe("·- -··· -·-· / -·· · ··-· // ·- -··");
+  expect(cipher.copy.morse("ABc DeF. AD", true)).toBe(".- -... -.-. / -.. . ..-. // .- -..");
 });
 
 test("numbers", () => {

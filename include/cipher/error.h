@@ -1,6 +1,8 @@
 #ifndef _CIPH_ERR_H
 #define _CIPH_ERR_H
 
+#include "internal/defines.h"
+
 typedef enum {
   CIPH_OK = 0,
 
@@ -22,7 +24,7 @@ typedef enum {
 extern "C" {
 #endif
 
-char* ciph_strerr(ciph_err_t err);
+EXPORT char* ciph_strerr(ciph_err_t err);
 
 #ifdef __cplusplus
 }
