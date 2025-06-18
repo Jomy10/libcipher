@@ -1,3 +1,5 @@
+# TODO: try -Os and other opt levels for emscripten
+
 require 'etc'
 require 'fileutils'
 

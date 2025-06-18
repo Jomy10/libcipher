@@ -12,26 +12,10 @@
 #include <unistd.h>
 #include <unistr.h>
 
-#ifdef __EMSCRIPTEN__
-  #define DIT 46
-  #define DAH 45
-#else
-  #ifdef CIPH_DIT
-  #else
-  #define DIT "."
-  #endif
-
-  #ifdef CIPH_DAH
-  #define DAH CIPH_DAH
-  #else
-  #define DAH "-"
-  #endif
-
-  enum {
-    MORSE_DIT_LEN = strlen(DIT),
-    MORSE_DAH_LEN = strlen(DAH),
-  };
-#endif
+#define UC_DIT 46
+#define UC_DAH 45
+#define UC_SPACE 32
+#define UC_WORD_DIVIDER 47
 
 #define MAX(A, B) ((A > B) ? (A) : (B))
 
@@ -78,25 +62,6 @@ ciph_err_t ciph_morse_to_audio(
   ucs4_t uc_next;
   ucs4_t uc_prev = 0;
 
-  ucs4_t uc_dit;
-  ucs4_t uc_dah;
-  ucs4_t uc_space;
-  int uc_space_len;
-  ucs4_t uc_word_divider;
-  int uc_word_divider_len;
-
-  #ifdef __EMSCRIPTEN__
-    uc_dit = DIT;
-    uc_dah = DAH;
-  #else
-    assert(u8_mbtouc(&uc_dit, (uint8_t*)DIT, MORSE_DIT_LEN) == MORSE_DIT_LEN);
-    assert(u8_mbtouc(&uc_dah, (uint8_t*)DAH, MORSE_DAH_LEN) == MORSE_DAH_LEN);
-    uc_space_len = u8_mbtouc(&uc_space, (uint8_t*)" ", strlen(" "));
-    uc_word_divider_len = u8_mbtouc(&uc_word_divider, (uint8_t*)"/", strlen("/"));
-    assert(uc_dit != 0xfffd && uc_dah != 0xfffd && uc_space != 0xfffd && uc_word_divider != 0xfffd
-        && uc_dit != 0 && uc_dah != 0 && uc_space != 0 && uc_word_divider != 0);
-  #endif
-
   uint8_t* output_ptr = wave_data;
   const uint8_t* output_end = wave_data + wave_data_len;
   int output_left;
@@ -136,54 +101,59 @@ ciph_err_t ciph_morse_to_audio(
       uc_next = 0;
     }
 
-    if (uc == uc_dit) {
-      if (samples_per_dit + samples_silence_between_dits >= output_left) {
-        err = CIPH_GROW;
-        goto cleanup;
-      }
-
-      memcpy(output_ptr, dit_tone, samples_per_dit);
-      output_ptr += samples_per_dit;
-      if (uc_next == uc_dit || uc_next == uc_dah || uc_next == 0) {
-        memset(output_ptr, 0, samples_silence_between_dits);
-        output_ptr += samples_silence_between_dits;
-      }
-    } else if (uc == uc_dah) {
-      if (samples_per_dit * dahs_per_dit + samples_silence_between_dits >= output_left) {
-        err = CIPH_GROW;
-        goto cleanup;
-      }
-
-      for (int i = 0; i < dahs_per_dit; i++) {
-        memcpy(output_ptr, dit_tone, samples_per_dit);
-        output_ptr += samples_per_dit;
-      }
-      if (uc_next == uc_dit || uc_next == uc_dah || uc_next == 0) {
-        memset(output_ptr, 0, samples_silence_between_dits);
-        output_ptr += samples_silence_between_dits;
-      }
-    } else if (uc == uc_space) {
-      // if prev was also space or / or next is / -> skip
-      if (uc_next != uc_word_divider && uc_prev != uc_space && uc_prev != uc_word_divider) {
-        if (samples_silence_between_letters >= output_left) {
+    switch (uc) {
+      case UC_DIT:
+        if (samples_per_dit + samples_silence_between_dits >= output_left) {
           err = CIPH_GROW;
           goto cleanup;
         }
 
-        memset(output_ptr, 0, samples_silence_between_letters);
-        output_ptr += samples_silence_between_letters;
-      }
-    } else if (uc == uc_word_divider) {
-      if (samples_silence_between_words >= output_left) {
-        err = CIPH_GROW;
-        goto cleanup;
-      }
+        memcpy(output_ptr, dit_tone, samples_per_dit);
+        output_ptr += samples_per_dit;
+        if (uc_next == UC_DIT || uc_next == UC_DAH || uc_next == 0) {
+          memset(output_ptr, 0, samples_silence_between_dits);
+          output_ptr += samples_silence_between_dits;
+        }
+        break;
+      case UC_DAH:
+        if (samples_per_dit * dahs_per_dit + samples_silence_between_dits >= output_left) {
+          err = CIPH_GROW;
+          goto cleanup;
+        }
 
-      memset(output_ptr, 0, samples_silence_between_words);
-      output_ptr += samples_silence_between_words;
-    } else {
-      err = CIPH_ERR_MORSE_AUDIO_INVALID_CHAR;
-      goto cleanup;
+        for (int i = 0; i < dahs_per_dit; i++) {
+          memcpy(output_ptr, dit_tone, samples_per_dit);
+          output_ptr += samples_per_dit;
+        }
+        if (uc_next == UC_DIT || uc_next == UC_DAH || uc_next == 0) {
+          memset(output_ptr, 0, samples_silence_between_dits);
+          output_ptr += samples_silence_between_dits;
+        }
+        break;
+      case UC_SPACE: {
+        // if prev was also space or / or next is / -> skip
+        if (uc_next != UC_WORD_DIVIDER && uc_prev != UC_SPACE && uc_prev != UC_WORD_DIVIDER) {
+          if (samples_silence_between_letters >= output_left) {
+            err = CIPH_GROW;
+            goto cleanup;
+          }
+
+          memset(output_ptr, 0, samples_silence_between_letters);
+          output_ptr += samples_silence_between_letters;
+        }
+      } break;
+      case UC_WORD_DIVIDER:
+        if (samples_silence_between_words >= output_left) {
+          err = CIPH_GROW;
+          goto cleanup;
+        }
+
+        memset(output_ptr, 0, samples_silence_between_words);
+        output_ptr += samples_silence_between_words;
+        break;
+      default:
+        err = CIPH_ERR_MORSE_AUDIO_INVALID_CHAR;
+        goto cleanup;
     }
 
     input_ptr += uc_size;
