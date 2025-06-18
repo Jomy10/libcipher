@@ -149,6 +149,8 @@ if OPT == "debug" && sanitize
   ciph_linker_flags << "-fno-omit-frame-pointer"
 end
 
+ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
+
 ciph_deps = [
   unistring_dep,
 ]
