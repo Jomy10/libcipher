@@ -4,17 +4,20 @@ A library for encoding messages using a plethora of ciphers
 
 - All functions work with unicode encoding.
 - Works in C and C++.
+- Bindings for js/ts through wasm, works on the web and node/bun/deno.
 
 ## Ciphers
 
 Currently, this library supports the following ciphers:
 - Alphabet lookup (e.g. atbash, vignère)
 - Ascii
-- Caesar
-- Reverse words
-- Morse
-- Letter to number
 - Block method
+- Caesar
+- Morse (as text or audio)
+- Letter to number
+- Reverse words
+- Substitution cipher
+- "year" cipher
 
 ## Examples
 
