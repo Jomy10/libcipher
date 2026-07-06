@@ -1,12 +1,15 @@
-# TODO: try -Os and other opt levels for emscripten
-
-require 'etc'
 require 'fileutils'
+require 'colored'
 
-build_dir "build"
+out_dir = "build"
+build_dir out_dir
 
-deps_dir = "deps/#{TARGET}"
+deps_dir = "#{out_dir}/deps/#{TARGET}"
 FileUtils.mkdir_p deps_dir unless Dir.exist? deps_dir
+
+#########
+# CUnit #
+#########
 
 unless TARGET.os == "emscripten"
   cunit_dir = File.join("deps", "CUnit")
@@ -17,92 +20,104 @@ unless TARGET.os == "emscripten"
   import_cmake cunit_dir # TODO: macos min version
 end
 
+Project(name: "libcipher")
+
+#############
+# Unistring #
+#############
+
 unistring_vendored = !flag("build-unistring")
 unistring_dep = nil
 if !unistring_vendored
   unistr = "libunistring-1.3"
   unistr_dir = File.join(deps_dir, unistr)
-  unless Dir.exist? unistr_dir
-    Dir.chdir(deps_dir) do
-      unless File.exist? "#{unistr}.tar.gz"
-        begin
-          sh "curl -O https://ftp.gnu.org/gnu/libunistring/#{unistr}.tar.gz"
-        rescue => e
-          puts "Error occurred: #{e}. Trying a mirror..."
-          sh "curl -O https://mirror.ibcp.fr/pub/gnu/libunistring/#{unistr}.tar.gz"
-        end
-      end
-      sh "tar -xvf #{unistr}.tar.gz"
-    end
-    Dir.chdir(unistr_dir) do
-      begin
-        if TARGET.os == "emscripten"
-          sh "emconfigure ./configure \
-            --host=#{TARGET} \
-            ac_cv_search_nanosleep=no \
-            ac_cv_have_decl_sleep=no \
-            ac_cv_func_malloc_0_nonnull=yes \
-            ac_cv_func_realloc_0_nonnull=yes \
-            ac_cv_func_free_0_nonnull=yes \
-            --disable-threads \
-            --enable-static \
-            --disable-shared \
-            CFLAGS=\"-O3 -flto -g0\" \
-            LDFLAGS=\"-O3 -flto -g0\""
-          sh "emmake make -j #{Etc.nprocessors || 0} GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
-        else
-          sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\" \
-            ac_cv_func_malloc_0_nonnull=yes \
-            ac_cv_func_realloc_0_nonnull=yes \
-            ac_cv_func_free_0_nonnull=yes \
-            --enable-static \
-            --disable-shared
-            "
-          sh "make -j #{Etc.nprocessors || 0}  GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
-        end
-      rescue => e
-        Dir.rmdir(unistr_dir)
-        raise e
-      end
-    end
-    Dir.chdir(deps_dir) do
-      sh("rm #{unistr}.tar.gz") if File.exist?("#{unistr}.tar.gz")
-    end
 
-    FileUtils.cp(File.join(unistr_dir, "config.h"), "include/cipher/internal/unistring_config.h")
-  end
-
-  unistring_dep = flags(
-    [
-      "-I#{File.realpath(File.join(unistr_dir, "lib"))}",
-      "-I#{File.realpath(unistr_dir)}",
+  Custom::Library(
+    name: "unistring",
+    language: :c,
+    cflags: [
+      "-I#{File.realpath(deps_dir)}/#{File.join(unistr, "lib")}",
+      "-I#{File.realpath(deps_dir)}/#{unistr}",
       "-D_GL_CONFIG_H_INCLUDED"
     ],
-    [
-      "-L#{File.realpath(File.join(unistr_dir, "lib/.libs"))}",
-      "-lunistring"
-    ]
+    # linker_flags: [
+    #   "-L#{File.realpath(File.join(unistr_dir, "lib/.libs"))}",
+    #   "-lunistring"
+    # ],
+    artifacts: {
+      staticlib: File.join(unistr_dir, "lib/.libs/libunistring.a")
+    },
+    build: proc {
+      unless Dir.exist? unistr_dir
+        puts "Downloading #{unistr}".blue
+
+        Dir.chdir(deps_dir) do
+          unless File.exist? "#{unistr}.tar.gz"
+            begin
+              sh "curl -O https://ftp.gnu.org/gnu/libunistring/#{unistr}.tar.gz"
+            rescue => e
+              puts "Error occurred: #{e}. Trying a mirror..."
+              sh "curl -O https://mirror.ibcp.fr/pub/gnu/libunistring/#{unistr}.tar.gz"
+            end
+          end
+          sh "tar -xvf #{unistr}.tar.gz"
+        end
+
+        Dir.chdir(unistr_dir) do
+          begin
+            if TARGET.os == "emscripten"
+              sh "emconfigure ./configure \
+                --host=#{TARGET} \
+                ac_cv_search_nanosleep=no \
+                ac_cv_have_decl_sleep=no \
+                ac_cv_func_malloc_0_nonnull=yes \
+                ac_cv_func_realloc_0_nonnull=yes \
+                ac_cv_func_free_0_nonnull=yes \
+                --disable-threads \
+                --enable-static \
+                --disable-shared \
+                CFLAGS=\"-O3 -flto -g0\" \
+                LDFLAGS=\"-O3 -flto -g0\""
+              sh "emmake make -j #{Etc.nprocessors || 0} GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
+            else
+            sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\" \
+              ac_cv_func_malloc_0_nonnull=yes \
+              ac_cv_func_realloc_0_nonnull=yes \
+              ac_cv_func_free_0_nonnull=yes \
+              --enable-static \
+              --disable-shared
+              "
+            sh "make -j #{Etc.nprocessors || 0}  GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
+            end
+          rescue => e
+            Dir.rmdir(unistr_dir)
+            raise e
+          end
+        end
+
+        Dir.chdir(deps_dir) do
+          sh("rm #{unistr}.tar.gz") if File.exist?("#{unistr}.tar.gz")
+        end
+
+        FileUtils.cp(File.join(unistr_dir, "config.h"), "include/cipher/internal/unistring_config.h")
+      end
+    }
   )
+
+  unistring_dep = "unistring"
 else
-  # TODO: unistring_dep = system("unistring")
-  unistring_dep = flags([], ["-lunistring"])
+  unistring_dep = system_lib("unistring")
 end
 
-use_audio = !flag("no-audio")
-
-# if use_audio
-#   if !Dir.exist? "deps/libwave"
-#     sh "git clone https://github.com/brglng/libwave deps/libwave"
-#   end
-#   import_cmake "deps/libwave", ["-DBUILD_SHARED_LIBS=NO"]
-# end
-
-Project(name: "libcipher")
+##########
+# Cipher #
+##########
 
 sanitize = flag("sanitize", default: true)
 
 ciph_cflags = []
-if use_audio
+
+if !flag("no-audio")
   ciph_cflags << "-DCIPH_AUDIO"
 end
 if unistring_vendored
@@ -114,11 +129,11 @@ end
 
 if OPT == "debug" && sanitize
   ciph_cflags << "-fsanitize=address"
-  # ciph_cflags << "-fsanitize=leak"
   ciph_cflags << "-fno-omit-frame-pointer"
 end
 
 ciph_linker_flags = []
+
 if TARGET.os == "emscripten"
   ciph_linker_flags.append *[
     "-s", "EXPORT_ALL=1",
@@ -151,10 +166,6 @@ end
 
 ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
 
-ciph_deps = [
-  unistring_dep,
-]
-
 C::Library(
   name: "cipher",
   sources: "src/**/*.c",
@@ -162,18 +173,21 @@ C::Library(
   headers: "include",
   cflags: ciph_cflags,
   linker_flags: ciph_linker_flags,
-  dependencies: ciph_deps
+  dependencies: [
+    unistring_dep
+  ]
 )
 
-minify_js = flag("minify", default: true)
 if TARGET.os == "emscripten"
-# TODO: make post "build"
-  cmd "build-js" do
+  post "build" do
+    puts "Building JS".blue
+
+    minify_js = flag("minify", default: true)
+
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
 
     Dir.chdir("binding/js") do
       sh "bun build.ts #{web_mode ? "browser" : "node"} #{minify_js ? "--minify" : "--no-minify"}"
-      # sh "tsc -p ./tsconfig.json"
     end
   end
 end
