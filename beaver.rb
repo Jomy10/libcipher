@@ -1,3 +1,4 @@
+require 'etc'
 require 'fileutils'
 require 'colored'
 
@@ -48,6 +49,8 @@ if !unistring_vendored
       staticlib: File.join(unistr_dir, "lib/.libs/libunistring.a")
     },
     build: proc {
+      print "Building unistring from source...".blue
+
       unless Dir.exist? unistr_dir
         puts "Downloading #{unistr}".blue
 
@@ -78,19 +81,19 @@ if !unistring_vendored
                 --disable-shared \
                 CFLAGS=\"-O3 -flto -g0\" \
                 LDFLAGS=\"-O3 -flto -g0\""
-              sh "emmake make -j #{Etc.nprocessors || 0} GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
+              sh "emmake make -j #{Etc.nprocessors || 1} GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
             else
-            sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\" \
-              ac_cv_func_malloc_0_nonnull=yes \
-              ac_cv_func_realloc_0_nonnull=yes \
-              ac_cv_func_free_0_nonnull=yes \
-              --enable-static \
-              --disable-shared
-              "
-            sh "make -j #{Etc.nprocessors || 0}  GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
+              sh "./configure CFLAGS=\"-O3 -flto -g0\" LDFLAGS=\"-O3 -flto -g0\" \
+                ac_cv_func_malloc_0_nonnull=yes \
+                ac_cv_func_realloc_0_nonnull=yes \
+                ac_cv_func_free_0_nonnull=yes \
+                --enable-static \
+                --disable-shared
+                "
+              sh "make -j #{Etc.nprocessors || 1}  GL_GNULIB_MALLOC_POSIX=0 GL_GNULIB_FREE_POSIX=0"
             end
           rescue => e
-            Dir.rmdir(unistr_dir)
+            Dir.rmdir(unistr_dir) if Dir.exist?(unistr_dir)
             raise e
           end
         end
@@ -223,3 +226,5 @@ pre "clean" do
   File.delete "include/cipher/internal/unistring_config.h" if File.exist? "include/cipher/internal/unistring_config.h"
   FileUtils.rm_r "deps" if Dir.exist? "deps"
 end
+
+puts ".."
