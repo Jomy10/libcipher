@@ -30,4 +30,4 @@ EXPORT char* ciph_strerr(ciph_err_t err);
 }
 #endif
 
-#endif
+#endif // _CIPH_ERR_H

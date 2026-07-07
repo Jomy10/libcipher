@@ -8,4 +8,4 @@
 #define EXPORT
 #endif
 
-#endif
+#endif // _CIPH_DEFINES_H

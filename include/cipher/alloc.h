@@ -5,7 +5,7 @@
 #ifndef _CIPH_ALLOC_H
 #define _CIPH_ALLOC_H
 
-#include "cipher/ciphers.h"
+#include "ciphers.h"
 #ifndef CIPH_NO_ALLOCS
 
 #include <stddef.h>
@@ -73,4 +73,4 @@ EXPORT ciph_err_t ciph_alloc_year(
 }
 #endif
 
-#endif
+#endif // _CIPH_ALLOC_H

@@ -114,10 +114,11 @@ end
 ##########
 
 sanitize = flag("sanitize", default: true)
+use_audio = !flag("no-audio")
 
 ciph_cflags = []
 
-if !flag("no-audio")
+if use_audio
   ciph_cflags << "-DCIPH_AUDIO"
 end
 if unistring_vendored

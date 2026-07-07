@@ -381,4 +381,4 @@ EXPORT ciph_err_t ciph_year(
 }
 #endif
 
-#endif // include guard
+#endif // _CIPH_H
