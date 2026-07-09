@@ -170,10 +170,6 @@ end
 
 minify_js = flag("minify", default: true)
 
-if !minify_js
-  ciph_cflags << "-sMINIFY_WASM_IMPORTS=0"
-end
-
 ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
 ciph_cflags.append *(opt("Xcc")&.split(",") || [])
 
