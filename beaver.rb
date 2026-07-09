@@ -168,6 +168,12 @@ if OPT == "debug" && sanitize
   ciph_linker_flags << "-fno-omit-frame-pointer"
 end
 
+minify_js = flag("minify", default: true)
+
+if !minify_js
+  ciph_cflags << "-sMINIFY_WASM_IMPORTS=0"
+end
+
 ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
 ciph_cflags.append *(opt("Xcc")&.split(",") || [])
 
@@ -186,8 +192,6 @@ C::Library(
 if TARGET.os == "emscripten"
   post "build" do
     puts "Building JS".blue
-
-    minify_js = flag("minify", default: true)
 
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
 
