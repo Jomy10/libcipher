@@ -169,6 +169,7 @@ if OPT == "debug" && sanitize
 end
 
 ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
+ciph_cflags.append *(opt("Xcc")&.split(",") || [])
 
 C::Library(
   name: "cipher",
