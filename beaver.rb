@@ -168,8 +168,6 @@ if OPT == "debug" && sanitize
   ciph_linker_flags << "-fno-omit-frame-pointer"
 end
 
-minify_js = flag("minify", default: true)
-
 ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
 ciph_cflags.append *(opt("Xcc")&.split(",") || [])
 
@@ -189,10 +187,12 @@ if TARGET.os == "emscripten"
   post "build" do
     puts "Building JS".blue
 
+    minify_js = flag("minify", default: true)
+
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
 
     Dir.chdir("binding/js") do
-      sh "bun build.ts #{web_mode ? "browser" : "node"} #{minify_js ? "--minify" : "--no-minify"}"
+      sh "bun build.ts #{web_mode ? "browser" : "node"} --config #{OPT} #{minify_js ? "--always-minify" : ""}"
     end
   end
 end
