@@ -8,6 +8,9 @@ const { values, positionals } = parseArgs({
     },
     "always-minify": {
       type: "boolean"
+    },
+    "memory-growth-enabled": {
+      type: "boolean"
     }
   },
   strict: true,
@@ -15,9 +18,8 @@ const { values, positionals } = parseArgs({
 });
 
 let config = values.config;
-let minify = config["always-minify"] || config == "release";
-// let minify = (values.minify || !values["no-minify"]) ?? true;
-// let config = (values)
+let minify = values["always-minify"] || config == "release";
+let memGrowthEnabled = values["memory-growth-enabled"] ?? false;
 let mode: Bun.Target = positionals[2] as Bun.Target;
 
 console.log("Building libcipher javascript bindings");
@@ -29,6 +31,9 @@ let outputs = await Bun.build({
   outdir: `../../build/js/${config}`,
   minify: minify,
   target: mode,
+  define: {
+    MEMORY_GROWTH: JSON.stringify(memGrowthEnabled)
+  }
 });
 
 console.log(outputs);

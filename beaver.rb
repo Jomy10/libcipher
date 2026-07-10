@@ -139,6 +139,8 @@ end
 
 ciph_linker_flags = []
 
+memgrowth = flag("memgrowth", default: true)
+
 if TARGET.os == "emscripten"
   ciph_linker_flags.append *[
     "-s", "EXPORT_ALL=1",
@@ -146,7 +148,7 @@ if TARGET.os == "emscripten"
     "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc', '_strlen', '_ciph_strerror']",
     "-s", "EXPORT_ES6=1",
     "-s", "MODULARIZE=1",
-    "-s", "ALLOW_MEMORY_GROWTH=1",
+    "-s", "ALLOW_MEMORY_GROWTH=#{memgrowth ? 1 : 0}",
     "-s", "STRICT=1",
   ]
 
@@ -213,7 +215,7 @@ if TARGET.os == "emscripten"
       File.open("tsconfig.json", 'w') do |f|
         f.write(tsconfig)
       end
-      sh "bun build.ts #{web_mode ? "browser" : "node"} --config #{OPT} #{minify_js ? "--always-minify" : ""}"
+      sh "bun build.ts #{web_mode ? "browser" : "node"} --config #{OPT} #{minify_js ? "--always-minify" : ""} #{memgrowth ? "--memory-growth-enabled" : ""}"
     end
   end
 end

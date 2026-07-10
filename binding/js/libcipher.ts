@@ -1,6 +1,8 @@
 // import Module from "../../build/release/cipher.js";
 import Module from "@libcipher_build/cipher.js";
 
+declare const MEMORY_GROWTH: boolean;
+
 function _strToUTF8WithLength(string: string): [number | null, number] {
   if (string.length == 0) return [null, 0];
 
@@ -11,10 +13,57 @@ function _strToUTF8WithLength(string: string): [number | null, number] {
   return [ptr, byte_len];
 }
 
-function _ptrToStr(ptr: number, len: number): string {
-  let outbuffer = cipher._Module.HEAPU8.subarray(ptr, ptr + len);
-  return cipher._decoder.decode(outbuffer);
-}
+let _ptrToStr: (ptr: number, len: number) => string;
+if (MEMORY_GROWTH) {
+  function decocdeUtf8(buf: Uint8Array): string {
+    let result = "";
+    let i = 0;
+    let c = 0;
+    let c2 = 0;
+    let c3 = 0;
+
+    // Skip BOM
+    if (buf.length >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf) {
+      i == 3;
+    }
+
+    while (i < buf.length) {
+      c = buf[i];
+
+      if (c < 128) {
+        result += String.fromCharCode(c);
+        i += 1;
+      } else if (c > 191 && c < 224) {
+        if (i + 1 >= buf.length) {
+          throw "UTF-8 decode failed: two byte character was truncated";
+        }
+        c2 = buf[i + 1];
+        result += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+        i += 2;
+      } else {
+        if (i + 2 >= buf.length) {
+          throw "UTF-8 decode failed: multi byte character was truncated";
+        }
+        c2 = buf[i + 1];
+        c3 = buf[i + 2];
+        result += String.fromCharCode(((c & 15) << 12) | ((c & 63) << 6) | (c3 & 63));
+        i += 3;
+      }
+    }
+
+    return result;
+  }
+
+  _ptrToStr = function (ptr: number, len: number): string {
+    let outbuffer = cipher._Module.HEAPU8.subarray(ptr, ptr + len);
+    return decocdeUtf8(outbuffer);
+  }
+} else {
+  _ptrToStr = function (ptr: number, len: number): string {
+    let outbuffer = cipher._Module.HEAPU8.subarray(ptr, ptr + len);
+    return cipher._decoder.decode(outbuffer, { stream: true });
+  };
+};
 
 const cipher = {
   _encoder: new TextEncoder(),

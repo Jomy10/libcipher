@@ -71,6 +71,8 @@ beaver --target wasm32-unkown-emscripten -o -- --build-unistring
 In the [binding/js](binding/js) directory you can find a binding file written
 in typescript.
 
+*Requires Bun and emscripten 6.0.2.*
+
 **compiling for node/bun/deno**
 
 When you want to use this library in a node environment rather than on the web,
@@ -79,6 +81,8 @@ the `--build-for-node` option can be used.
 ```sh
 beaver --target wasm32-unknown-emscripten -o -- --build-unistring --build-for-node
 ```
+
+*Requires Bun and emscripten 6.0.2.*
 
 *You might have to enable node compatibility layer when running in deno*
 
