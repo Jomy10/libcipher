@@ -4,3 +4,4 @@
 /deps
 compile_commands.json
 /include/cipher/internal/unistring_config.h
+binding/js/tsconfig.json

@@ -1,6 +1,7 @@
 require 'etc'
 require 'fileutils'
 require 'colored'
+require 'json'
 
 out_dir = "build"
 build_dir out_dir
@@ -191,7 +192,27 @@ if TARGET.os == "emscripten"
 
     FileUtils.mkdir_p "build/js" unless Dir.exist? "build/js"
 
+    tsconfig = JSON.generate({
+      files: ["libcipher.ts"],
+      compilerOptions: {
+        declaration: true,
+        declarationMap: true,
+        sourceMap: true,
+        target: "es2024",
+        module: "es2022",
+        removeComments: OPT == "release",
+        outDir: "../../build/js/#{OPT}",
+        baseUrl: ".",
+        paths: {
+          "@libcipher_build/*": ["../../build/wasm32-unknown-emscripten/#{OPT}/libcipher/artifacts/*"]
+        }
+      }
+    })
+
     Dir.chdir("binding/js") do
+      File.open("tsconfig.json", 'w') do |f|
+        f.write(tsconfig)
+      end
       sh "bun build.ts #{web_mode ? "browser" : "node"} --config #{OPT} #{minify_js ? "--always-minify" : ""}"
     end
   end
