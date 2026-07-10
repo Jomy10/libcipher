@@ -29,7 +29,7 @@ let tsconfig = {
     "target": "es2024",
     "module": "es2022",
     "removeComments": true,
-    "outDir": `../../build/${config}/js`,
+    "outDir": `../../build/js/${config}`,
     "baseUrl": ".",
     // "skipLibCheck": true,
     "paths": {
@@ -50,7 +50,7 @@ console.log("- minify:", minify);
 
 let outputs = await Bun.build({
   entrypoints: ["./libcipher.ts"],
-  outdir: "../../build/js",
+  outdir: `../../build/js/${config}`,
   minify: minify,
   target: mode,
 });
