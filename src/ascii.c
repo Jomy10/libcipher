@@ -13,7 +13,5 @@ ciph_err_t ciph_ascii(const char* nonnil input, size_t input_len, char* nonnil o
     if (i + 1 != input_len) output[i * 4 + 3] = ' ';
   }
 
-  // output[input_len * 4 - 1] = '\0';
-
   return CIPH_OK;
 }

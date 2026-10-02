@@ -6,8 +6,8 @@
 typedef enum {
   CIPH_OK = 0,
 
-  /// Need more memory in the output buffer
-  CIPH_GROW,
+  /// Allocation error
+  CIPH_ERR_ALLOC,
 
   /// The input had an invalid encoding
   CIPH_ERR_ENCODING,

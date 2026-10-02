@@ -1,5 +1,5 @@
-#ifndef _CIPH_UTILS_H
-#define _CIPH_UTILS_H
+#ifndef _CIPH_INTERNAL_UTILS_H
+#define _CIPH_INTERNAL_UTILS_H
 
 #include <unitypes.h>
 #include <stdbool.h>
@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+/// Returns true if the codepoint is a character that separates words.
 bool ciph_uc_is_wordbreak(ucs4_t uc);
 
 #ifdef __cplusplus

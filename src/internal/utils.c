@@ -1,8 +1,17 @@
+#include "unictype.h"
 #include <cipher/internal/unistring_config.h>
 #include <cipher/internal/utils.h>
 #include <uniwbrk.h>
 
 bool ciph_uc_is_wordbreak(ucs4_t uc) {
+  if (uc_is_general_category(uc, UC_DASH_PUNCTUATION)) {
+    return false;
+  }
+
+  if (uc_is_general_category(uc, UC_PUNCTUATION)) {
+    return true;
+  }
+
   switch (uc_wordbreak_property(uc)) {
     case WBP_CR:
     case WBP_LF:

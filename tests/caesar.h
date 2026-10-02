@@ -39,3 +39,11 @@ void test_caesar_negative(void) {
 
   CU_ASSERT(u8_cmp2(output, strlen((char*)input), expected, strlen((char*)expected)) == 0);
 }
+
+CU_SuiteInfo suite_caesar(void) {
+  static CU_TestInfo tests[] = {
+    { "caesar", test_caesar },
+    { "caesar negative", test_caesar_negative }
+  };
+  return (CU_SuiteInfo){ "caesar", NULL, NULL, NULL, NULL, tests };
+}

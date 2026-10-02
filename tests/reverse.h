@@ -28,3 +28,11 @@ void test_reverse_grapheme(void) {
 
   CU_ASSERT(u8_cmp2(output, strlen((char*)input), expected, strlen((char*)expected)) == 0);
 }
+
+CU_SuiteInfo suite_reverse(void) {
+  static CU_TestInfo tests[] = {
+    { "reverse", test_reverse },
+    { "reverse grapheme", test_reverse_grapheme },
+  };
+  return (CU_SuiteInfo){ "reverse", NULL, NULL, NULL, NULL, tests };
+}

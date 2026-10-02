@@ -142,7 +142,7 @@ ciph_linker_flags = []
 memgrowth = flag("memgrowth", default: true)
 
 if TARGET.os == "emscripten"
-  ciph_linker_flags.append *[
+  ciph_linker_flags.append(*[
     "-s", "EXPORT_ALL=1",
     "-s", "EXPORTED_RUNTIME_METHODS=['ccall', 'stringToNewUTF8', 'UTF8ToString']",
     "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc', '_strlen', '_ciph_strerror']",
@@ -150,19 +150,19 @@ if TARGET.os == "emscripten"
     "-s", "MODULARIZE=1",
     "-s", "ALLOW_MEMORY_GROWTH=#{memgrowth ? 1 : 0}",
     "-s", "STRICT=1",
-  ]
+  ])
 
   if use_audio
-    ciph_linker_flags.append *["-s", "STACK_SIZE=5MB"]
+    ciph_linker_flags.append(*["-s", "STACK_SIZE=5MB"])
   end
 
   # When this flag is specified, it will build the js module for running inside
   # of node instead of on the web
   web_mode = !flag("build-for-node")
   if web_mode
-    ciph_linker_flags.append *["-s", "ENVIRONMENT=web,worker"]
+    ciph_linker_flags.append(*["-s", "ENVIRONMENT=web,worker"])
   else
-    ciph_linker_flags.append *["-s", "ENVIRONMENT=node"]
+    ciph_linker_flags.append(*["-s", "ENVIRONMENT=node"])
   end
 end
 
@@ -171,11 +171,16 @@ if OPT == "debug" && sanitize
   ciph_linker_flags << "-fno-omit-frame-pointer"
 end
 
-ciph_linker_flags.append *(opt("Xlinker")&.split(",") || [])
-ciph_cflags.append *(opt("Xcc")&.split(",") || [])
+# TODO: flag / get version
+macos_version = "26"
+ciph_linker_flags << "-mmacos-version-min=#{macos_version}"
+
+ciph_linker_flags.append(*(opt("Xlinker")&.split(",") || []))
+ciph_cflags.append(*(opt("Xcc")&.split(",") || []))
 
 C::Library(
   name: "cipher",
+  version: "2.0.0",
   sources: "src/**/*.c",
   artifacts: TARGET.os == "emscripten" ? [:staticlib, :jslib] : [:staticlib],
   headers: "include",
@@ -231,7 +236,7 @@ unless TARGET.os == "emscripten"
     sources: "tests/**/*.c",
     dependencies: ["cipher", "CUnit:cunit"],
     cflags: test_cflags,
-    linker_flags: ["-mmacos-version-min=15.1"] # TODO: configure
+    linker_flags: ["-mmacos-version-min=#{macos_version}"]
   )
 
   cmd "test" do

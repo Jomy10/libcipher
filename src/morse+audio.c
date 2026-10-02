@@ -1,3 +1,5 @@
+#include "cipher/error.h"
+#include "cipher/utils.h"
 #ifdef CIPH_AUDIO
 
 #include <cipher.h>
@@ -45,12 +47,10 @@ static void gen_tonewave(int sample_rate, double freq, int num_samples, unsigned
 }
 
 ciph_err_t ciph_morse_to_audio(
-  const unistring_uint8_t* nonnil morse_code, size_t morse_code_len,
+  const uint8_t* nonnil morse_code, size_t morse_code_len,
   double secs_per_dit,
   int sample_rate,
-  unsigned char* nonnil wave_data, size_t wave_data_len,
-  const uint8_t* nilable * nilable out_input_end_ptr,
-  size_t* nonnil out_output_written
+  ciph_data_t* nonnil wave_data
 ) {
   ciph_err_t err = CIPH_OK;
 
@@ -62,23 +62,20 @@ ciph_err_t ciph_morse_to_audio(
   ucs4_t uc_next;
   ucs4_t uc_prev = 0;
 
-  uint8_t* output_ptr = wave_data;
-  const uint8_t* output_end = wave_data + wave_data_len;
-  int output_left;
-
-  // const double secs_per_dit = 0.25;
   size_t samples_per_dit = (size_t)round(((double)sample_rate) * secs_per_dit);
+  samples_per_dit += (samples_per_dit % BYTE_RATE);
   // amount of samples of a specific tone always needs to be divisable by BYTE_RATE,
   // otherwise we will get misaligned samples and things will quickly get painful
-  samples_per_dit += (samples_per_dit % BYTE_RATE);
   const int dahs_per_dit = 3;
-  // const double secs_per_dah = secs_per_Dit * dahs_per_dit;
+
   const double secs_silence_between_dits = secs_per_dit;
   size_t samples_silence_between_dits = (size_t)round(((double)sample_rate) * secs_silence_between_dits);
   samples_silence_between_dits += (samples_silence_between_dits % BYTE_RATE);
+
   const double secs_silence_between_letters = secs_per_dit * 3;
   size_t samples_silence_between_letters = (size_t)round(((double)sample_rate) * secs_silence_between_letters);
   samples_silence_between_letters += (samples_silence_between_letters % BYTE_RATE);
+
   const double secs_silence_between_words = secs_per_dit * 7;
   size_t samples_silence_between_words = (size_t)round(((double)sample_rate) * secs_silence_between_words);
   samples_silence_between_words += (samples_silence_between_words % BYTE_RATE);
@@ -88,68 +85,42 @@ ciph_err_t ciph_morse_to_audio(
 
   while (input_end != input_ptr) {
     input_left = input_end - input_ptr;
-    output_left = output_end - output_ptr;
-    assert(output_left > 0);
+
     uc_size = u8_mbtouc(&uc, input_ptr, input_left);
     if (uc == 0xfffd) {
       err = CIPH_ERR_ENCODING;
       goto cleanup;
     }
+
     if (input_left - uc_size > 0) {
       u8_mbtouc(&uc_next, input_ptr + uc_size, input_left - uc_size);
-    } else {
+    } {
       uc_next = 0;
     }
 
     switch (uc) {
       case UC_DIT:
-        if (samples_per_dit + samples_silence_between_dits >= output_left) {
-          err = CIPH_GROW;
-          goto cleanup;
-        }
-
-        memcpy(output_ptr, dit_tone, samples_per_dit);
-        output_ptr += samples_per_dit;
+        ciph_data_push_bytes(wave_data, dit_tone, samples_per_dit);
         if (uc_next == UC_DIT || uc_next == UC_DAH || uc_next == 0) {
-          memset(output_ptr, 0, samples_silence_between_dits);
-          output_ptr += samples_silence_between_dits;
+          ciph_data_set_byte(wave_data, 0, samples_silence_between_dits);
         }
         break;
       case UC_DAH:
-        if (samples_per_dit * dahs_per_dit + samples_silence_between_dits >= output_left) {
-          err = CIPH_GROW;
-          goto cleanup;
+        for (int i = 0; i < dahs_per_dit; i++) {
+          ciph_data_push_bytes(wave_data, dit_tone, samples_per_dit);
         }
 
-        for (int i = 0; i < dahs_per_dit; i++) {
-          memcpy(output_ptr, dit_tone, samples_per_dit);
-          output_ptr += samples_per_dit;
-        }
         if (uc_next == UC_DIT || uc_next == UC_DAH || uc_next == 0) {
-          memset(output_ptr, 0, samples_silence_between_dits);
-          output_ptr += samples_silence_between_dits;
+          ciph_data_set_byte(wave_data, 0, samples_silence_between_dits);
         }
         break;
-      case UC_SPACE: {
-        // if prev was also space or / or next is / -> skip
+      case UC_SPACE:
         if (uc_next != UC_WORD_DIVIDER && uc_prev != UC_SPACE && uc_prev != UC_WORD_DIVIDER) {
-          if (samples_silence_between_letters >= output_left) {
-            err = CIPH_GROW;
-            goto cleanup;
-          }
-
-          memset(output_ptr, 0, samples_silence_between_letters);
-          output_ptr += samples_silence_between_letters;
+          ciph_data_set_byte(wave_data, 0, samples_silence_between_letters);
         }
-      } break;
+        break;
       case UC_WORD_DIVIDER:
-        if (samples_silence_between_words >= output_left) {
-          err = CIPH_GROW;
-          goto cleanup;
-        }
-
-        memset(output_ptr, 0, samples_silence_between_words);
-        output_ptr += samples_silence_between_words;
+        ciph_data_set_byte(wave_data, 0, samples_silence_between_words);
         break;
       default:
         err = CIPH_ERR_MORSE_AUDIO_INVALID_CHAR;
@@ -162,11 +133,6 @@ ciph_err_t ciph_morse_to_audio(
 
 cleanup:
   free(dit_tone);
-
-  *out_output_written = output_ptr - wave_data;
-  if (out_input_end_ptr) {
-    *out_input_end_ptr = input_ptr;
-  }
 
   return err;
 }

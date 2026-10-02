@@ -15,3 +15,10 @@ void test_ascii(void) {
 
   CU_ASSERT(u8_cmp2((uint8_t*)output, strlen(input) * 4 -1, (uint8_t*)expected, strlen(expected)) == 0);
 }
+
+CU_SuiteInfo suite_ascii(void) {
+  static CU_TestInfo tests[] = {
+    { "ascii", test_ascii },
+  };
+  return (CU_SuiteInfo){ "ascii", NULL, NULL, NULL, NULL, tests };
+}
