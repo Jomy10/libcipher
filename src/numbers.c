@@ -1,4 +1,4 @@
-#include "cipher/internal/utils.h"
+#include "cipher/uc_cat.h"
 #include "cipher/utils.h"
 #include <cipher.h>
 
@@ -15,8 +15,8 @@ enum NumbersPrev {
 
 ciph_err_t ciph_numbers(
   const uint8_t * _Nonnull input, size_t input_len,
-  ciph_str_t *output,
-  bool copy_non_encodable_characters
+  bool copy_non_encodable_characters,
+  ciph_str_t *output
 ) {
   ucs4_t uc;
   int uc_len;

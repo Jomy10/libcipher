@@ -2,7 +2,7 @@
 #include "unistr.h"
 #include "utils.h"
 
-#include <cipher/internal/utils.h>
+#include <cipher/uc_cat.h>
 #include <cipher/internal/trie.h>
 
 #include <string.h>

@@ -15,7 +15,7 @@ function _strToUTF8WithLength(string: string): [number | null, number] {
 
 let _ptrToStr: (ptr: number, len: number) => string;
 if (MEMORY_GROWTH) {
-  function decocdeUtf8(buf: Uint8Array): string {
+  function decodeUtf8(buf: Uint8Array): string {
     let result = "";
     let i = 0;
     let c = 0;
@@ -56,7 +56,7 @@ if (MEMORY_GROWTH) {
 
   _ptrToStr = function (ptr: number, len: number): string {
     let outbuffer = cipher._Module.HEAPU8.subarray(ptr, ptr + len);
-    return decocdeUtf8(outbuffer);
+    return decodeUtf8(outbuffer);
   }
 } else {
   _ptrToStr = function (ptr: number, len: number): string {
@@ -69,6 +69,30 @@ const cipher = {
   _encoder: new TextEncoder(),
   _decoder: new TextDecoder(),
   _Module: await Module(),
+
+  _ciphStr: {
+    toStr(strPtr: number): string {
+      const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+      const data = cipher._Module.HEAPU32[strPtr / intsize];
+      const len = cipher._Module.HEAPU32[(strPtr + 8) / intsize];
+      if (data == 0 || len == 0) return "";
+      return _ptrToStr(data, len);
+    },
+    check(strPtr: number) {
+      if (strPtr == 0) throw new Error("Allocation error");
+      const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+      const data = cipher._Module.HEAPU32[strPtr / intsize];
+      if (data == 0) throw new Error("Allocation error");
+    }
+  },
+
+  // _ciphStrToStr= (str: any): string {
+  //   const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+  //   cipher._Module.HEAPU8[str];
+  //   const ptr = cipher._Module.HEAP32[str.data / intsize];
+  //   const len = str.len;
+  // }
+
 
   Error: class extends Error {
     code: number;
@@ -90,7 +114,7 @@ const cipher = {
 
   Err: {
     OK: 0,
-    GROW: 1,
+    ALLOC: 1,
     ERR_ENCODING: 2,
     ERR_YEAR_DIGITS: 3,
     ERR_MORSE_AUDIO_INVALID_CHAR: 4
@@ -253,30 +277,24 @@ const cipher = {
 
   // End Alphabet Lookup //
 
-  _morse_common: function(input: string, copy_non_encodable_characters: boolean): [number, number] {
+  _morse_common: function(input: string, copy_non_encodable_characters: boolean): number {
     const [inputptr, inputlen] = _strToUTF8WithLength(input);
 
-    const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    const outputptrptr = cipher._Module._malloc(intsize);
-    const outputlenptr = cipher._Module._malloc(intsize);
+    const str: number = cipher._Module._ciph_str_new(128);
+    cipher._ciphStr.check(str);
 
     try {
-      const ret = cipher._Module._ciph_alloc_morse(
+      const ret = cipher._Module._ciph_morse(
         inputptr, inputlen,
         copy_non_encodable_characters,
-        outputptrptr, outputlenptr
+        str
       );
 
       if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
-      const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      const outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-
-      return [outputptr, outputlen];
-    } finally {
-      cipher._Module._free(inputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlenptr);
+      return str;
+    } catch {
+      cipher._Module._ciph_str_delete(str);
     }
   },
 
@@ -286,15 +304,17 @@ const cipher = {
       return;
     }
 
-    let [outputptr, outputlen]: [number | null, number | null] = [null, null];
+    // let [outputptr, outputlen]: [number | null, number | null] = [null, null];
+    let str: any;
     try {
-      [outputptr, outputlen] = cipher._morse_common(input, copy_non_encodable_characters);
-      output(_ptrToStr(outputptr, outputlen));
+      str = cipher._morse_common(input, copy_non_encodable_characters);
+      output(cipher._ciphStr.toStr(str));
     } finally {
-      if (outputptr != null) cipher._Module._free(outputptr);
+      if (output != null) cipher._Module._ciph_str_delete(output);
     }
   },
 
+  // TODO: fix with new code
   morse_audio: function(input: string, secs_per_dit: number, sample_rate: number, output: (wave_data: Uint8Array) => void) {
     if (input.length == 0) {
       output(new Uint8Array());
@@ -337,28 +357,22 @@ const cipher = {
 
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
 
-    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let outputptrptr = cipher._Module._malloc(intsize);
-    let outputlenptr = cipher._Module._malloc(intsize);
+    const str: number = cipher._Module._ciph_str_new(128);
+    cipher._ciphStr.check(str);
 
     try {
-      let ret = cipher._Module._ciph_alloc_numbers(
+      let ret = cipher._Module._ciph_numbers(
         inputptr, inputlen,
         copy_non_encodable_characters,
-        outputptrptr, outputlenptr
+        str
       );
 
       if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      output(_ptrToStr(outputptr, outputlen));
+      output(cipher._ciphStr.toStr(str))
     } finally {
       cipher._Module._free(inputptr);
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      cipher._Module._free(outputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlenptr);
+      cipher._Module._ciph_str_delete(str);
     }
   },
 
@@ -369,36 +383,104 @@ const cipher = {
     }
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
 
-    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let outputptrptr = cipher._Module._malloc(intsize);
-    let outputlenptr = cipher._Module._malloc(intsize);
+    const str: number = cipher._Module._ciph_str_new(128);
+    cipher._ciphStr.check(str);
 
     try {
-      let ret = cipher._Module._ciph_alloc_block_method(
+      let ret = cipher._Module._ciph_block_method(
         inputptr, inputlen,
-        outputptrptr, outputlenptr
+        str
       );
       if (ret != cipher.Err.OK) throw new cipher.Error(ret);
 
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      output(_ptrToStr(outputptr, outputlen));
+      output(cipher._ciphStr.toStr(str));
     } finally {
       cipher._Module._free(inputptr);
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      cipher._Module._free(outputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlenptr);
+      cipher._Module._ciph_str_delete(str);
     }
   },
 
-  alphabet_substitution: function (
+  /// Parse the substitution
+  _sub_parse: function (
+    substitutions: Map<string, string> | { [key: string]: string },
+    cat_subs: Map<(codepoint: number) => boolean, string> | [[(codepoint: number) => number, string]] | null,
+    free: boolean,
+    singular: boolean,
+    // result is a ciph_sub_t (void*)
+    output: (result: number) => void
+  ) {
+    const substitutions_size = (substitutions instanceof Map) ? substitutions.size : Object.entries(substitutions).length;
+    const subsptr = cipher._Module._ciph_sub_entries_create(substitutions_size);
+    if (subsptr == 0) throw new Error("Allocation error");
+
+    const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+    let subptrptr = cipher._Module._calloc(1, intsize);
+    if (subptrptr == 0) {
+      cipher._Module._ciph_sub_entries_free(subsptr);
+      throw new Error("Allocation error");
+    }
+
+    let ptrs: number[] = [];
+
+    try {
+      // Lookups to C
+      let i = 0;
+      const subs = (substitutions instanceof Map) ? substitutions : Object.entries(substitutions);
+      for (let [lookup, replacement] of subs) {
+        const [lookupptr, lookuplen] = _strToUTF8WithLength(lookup);
+        const [replacementptr, replacementlen] = _strToUTF8WithLength(replacement);
+        ptrs.push(lookupptr);
+        ptrs.push(replacementptr);
+
+        cipher._Module._ciph_sub_entries_add_entry(subsptr, lookupptr, lookuplen, replacementptr, replacementlen, i);
+        i += 1;
+      }
+
+      const err = cipher._Module._ciph_sub_parse(subsptr, substitutions_size, subptrptr);
+      if (err != cipher.Err.OK) throw new cipher.Error(err);
+
+      const subptr = cipher._Module.HEAP32[subptrptr / intsize];
+      for (let [is_cat, replacement] of cat_subs) {
+        const [replacementptr, replacementlen] = _strToUTF8WithLength(replacement);
+        ptrs.push(replacementptr);
+        cipher._Module._ciph_sub_add_cat(subptr, is_cat, replacementptr, replacementlen);
+      }
+
+      cipher._Module._ciph_sub_set_cat_singular(subptr, singular);
+
+      output(subptr);
+    } finally {
+      const subptr = cipher._Module.HEAP32[subptrptr / intsize];
+      if (subptr != 0 && free)
+        cipher._Module._ciph_sub_free(subptr);
+      cipher._Module._free(subptrptr);
+
+      cipher._Module._ciph_sub_entries_free(subsptr);
+      for (let ptr of ptrs) {
+        cipher._Module._free(ptr);
+      }
+    }
+  },
+
+  sub_parse: function (
+    substitutions: Map<string, string> | { [key: string]: string },
+    cat_subs: Map<(codepoint: number) => boolean, string> | [[(codepoint: number) => number, string]] | null,
+    singular: boolean,
+    // result is a ciph_sub_t (void*)
+    output: (result: number) => void
+  ) {
+    return cipher._sub_parse(substitutions, cat_subs, true, singular, output);
+  },
+
+  sub: function (
     input: string,
-    substitution_alphabet: string[],
-    char_sep: string,
-    word_sep: string,
-    sentence_sep: string,
-    copy_non_encodable_characters: boolean,
+    // ciph_sub_t
+    _sub: number | any /* unmanaged.Substitution */,
+    // substitution_alphabet: string[],
+    // char_sep: string,
+    // word_sep: string,
+    // sentence_sep: string,
+    // copy_non_encodable_characters: boolean,
     output: (result: string) => void
   ) {
     if (input.length == 0) {
@@ -406,53 +488,23 @@ const cipher = {
       return;
     }
 
-    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+    const sub = (typeof _sub === "number") ? _sub : _sub.ptr;
 
-    let [inputptr, inputlen] = _strToUTF8WithLength(input);
-
-    let outputptrptr = cipher._Module._malloc(intsize);
-    let outputlenptr = cipher._Module._malloc(intsize);
-
-    let subptr = cipher._Module._malloc(26 * intsize * 2);
-    let free_list: number[] = [];
-    for (let i: number = 0; i < 26; i++) {
-      let [ptr, len] = _strToUTF8WithLength(substitution_alphabet[i]);
-      cipher._Module.HEAP32[(subptr / intsize) + i * 2] = ptr!;
-      cipher._Module.HEAP32[(subptr / intsize) + i * 2 + 1] = len;
-      free_list.push(ptr!);
-    }
-
-    let [char_sep_ptr, char_sep_len] = _strToUTF8WithLength(char_sep);
-    let [word_sep_ptr, word_sep_len] = _strToUTF8WithLength(word_sep);
-    let [sentence_sep_ptr, sentence_sep_len] = _strToUTF8WithLength(sentence_sep);
+    const [inputptr, inputlen] = _strToUTF8WithLength(input);
+    const outputptr = cipher._Module._ciph_str_new(inputlen);
 
     try {
-      let err = cipher._Module._ciph_alloc_char_alph_sub(
+      const err = cipher._Module._ciph_sub(
         inputptr, inputlen,
-        subptr,
-        char_sep_ptr, char_sep_len,
-        word_sep_ptr, word_sep_len,
-        sentence_sep_ptr, sentence_sep_len,
-        copy_non_encodable_characters,
-        outputptrptr, outputlenptr
+        sub, outputptr
       );
       if (err != cipher.Err.OK) throw new cipher.Error(err);
 
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      let outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      output(_ptrToStr(outputptr, outputlen));
+      const outputstr = cipher._ciphStr.toStr(outputptr)
+      output(outputstr);
     } finally {
-      cipher._Module._free(inputptr);
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      cipher._Module._free(outputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlenptr);
-      cipher._Module._free(char_sep_ptr);
-      cipher._Module._free(word_sep_ptr);
-      cipher._Module._free(sentence_sep_ptr);
-      for (let ptr of free_list) {
-        cipher._Module._free(ptr);
-      }
+      cipher._Module._free(input);
+      cipher._Module._ciph_str_delete(outputptr);
     }
   },
 
@@ -470,9 +522,8 @@ const cipher = {
     }
 
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
-    let intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    let outputptrptr = cipher._Module._malloc(intsize);
-    let outputlen = cipher._Module._malloc(intsize);
+    const str: number = cipher._Module._ciph_str_new(128);
+    cipher._ciphStr.check(str);
     let yearptr = cipher._Module._malloc(4);
 
     for (let i = 0; i < 4; i += 1) {
@@ -480,29 +531,57 @@ const cipher = {
     }
 
     try {
-      cipher._Module._ciph_alloc_year(
+      cipher._Module._ciph_year(
         inputptr, inputlen,
         yearptr,
         include_bitmask,
-        outputptrptr, outputlen
+        str
       );
 
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      output(_ptrToStr(outputptr, cipher._Module.HEAP32[outputlen / intsize]));
+      output(cipher._ciphStr.toStr(str));
     } finally {
       cipher._Module._free(inputptr);
-      let outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      cipher._Module._free(outputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlen);
+      cipher._Module._ciph_str_delete(str);
       cipher._Module._free(yearptr);
     }
   },
+
   include_bitmasks: {
-    letters: function () { return cipher._Module._ciph_year_include_mask_letters(); },
-    letters_and_numbers: function () { return cipher._Module._ciph_year_include_mask_letters_and_numbers(); },
-    with_symbols: function () { return cipher._Module._ciph_year_include_mask_with_symbols(); },
-    with_symbols_and_dashes: function () { return cipher._Module._ciph_year_include_mask_with_symbols_and_dashes(); },
+    letters: function () { return cipher._Module._ciph_char_include_letters(); },
+    numbers: function () { return cipher._Module._ciph_char_include_numbers(); },
+    symbols: function () { return cipher._Module._ciph_char_include_symbols(); },
+    dashes: function () { return cipher._Module._ciph_char_include_dashes(); },
+  },
+
+  character_category: {
+    is_wrdbrk: function () { return cipher._Module._ciph_fnptr_uc_is_wordbreak(); },
+    is_sentence_terminal: function () { return cipher._Module._ciph_fnptr_uc_is_sentence_terminal(); },
+  },
+
+  /** @module unmanaged
+   * These functions return classes that wouldl leak memory if `destroy` is not called
+   */
+  unmanaged: {
+    Substitution: class {
+      ptr: number;
+
+      constructor(ptr: number) {
+        this.ptr = ptr;
+      }
+
+      destroy() {
+        cipher._Module._ciph_sub_free(this.ptr);
+      }
+    },
+    sub_parse: function (
+      substitutions: Map<string, string> | { [key: string]: string },
+      cat_subs: Map<(codepoint: number) => boolean, string> | [[(codepoint: number) => number, string]] | null,
+      singular: boolean
+    ): any {
+      let ptr: number;
+      cipher._sub_parse(substitutions, cat_subs, false, singular, (n: number) => { ptr = n; })
+      return new cipher.unmanaged.Substitution(ptr);
+    }
   },
 
   /** @module copy
@@ -571,19 +650,20 @@ const cipher = {
       // @ts-ignore
       return res;
     },
-    alphabet_substitution: function (
+    sub: function (
       input: string,
-      substitution_alphabet: string[],
-      char_sep: string,
-      word_sep: string,
-      sentence_sep: string,
-      copy_non_encodable_characters: boolean,
+      sub: number | any /* unmanged.Substitution */
+      // substitution_alphabet: string[],
+      // char_sep: string,
+      // word_sep: string,
+      // sentence_sep: string,
+      // copy_non_encodable_characters: boolean,
     ) {
       let res: string;
-      cipher.alphabet_substitution(
-        input, substitution_alphabet,
-        char_sep, word_sep, sentence_sep,
-        copy_non_encodable_characters,
+      cipher.sub(
+        input, sub,
+        // char_sep, word_sep, sentence_sep,
+        // copy_non_encodable_characters,
         (output: string) => res = output.repeat(1)
       );
       // @ts-ignore

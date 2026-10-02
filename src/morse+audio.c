@@ -6,7 +6,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <assert.h>
-#include <cipher/internal/utils.h>
+#include <cipher/uc_cat.h>
 #include <string.h>
 #include <unicase.h>
 #include <unictype.h>

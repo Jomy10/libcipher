@@ -6,7 +6,7 @@
 
 void _test_morse(const uint8_t* input, const uint8_t* expected, bool copy_non_encodable_chars) {
   ciph_str_t output = ciph_str_create(strlen((const char*)expected));
-  ciph_err_t err = ciph_morse(input, strlen((char*)input), &output, copy_non_encodable_chars);
+  ciph_err_t err = ciph_morse(input, strlen((char*)input), copy_non_encodable_chars, &output);
   if (err != CIPH_OK) {
     CU_FAIL("non zero return code");
     return;

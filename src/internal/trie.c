@@ -208,3 +208,31 @@ ciph_err_t _ciph_trie_add_text_with_data(
 
   return CIPH_OK;
 }
+
+#ifdef DEBUG_PRINT
+
+#include <stdio.h>
+
+/// Print `node` and its children, indented by `depth` levels
+void _ciph_trie_print_node(FILE* out, _ciph_trie_node_ref node, int depth) {
+  for (int i = 0; i < depth; i++) fputs("  ", out);
+
+  fprintf(out, "'%.*s'", (int)node->text_len, node->text);
+  if (node->data != NULL) fprintf(out, " -> %p", node->data);
+  fputc('\n', out);
+
+  for (int i = 0; i < node->next_len; i++) {
+    _ciph_trie_print_node(out, node->next[i], depth + 1);
+  }
+}
+
+/// Print the trie as an indented tree
+void _ciph_trie_print(FILE* out, const _ciph_trie_t* trie) {
+  fprintf(out, "trie (%d nodes, %d roots)\n", trie->data_len, trie->roots_len);
+
+  for (int i = 0; i < trie->roots_len; i++) {
+    _ciph_trie_print_node(out, trie->roots[i], 1);
+  }
+}
+
+#endif

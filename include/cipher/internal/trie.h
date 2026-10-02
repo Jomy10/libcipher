@@ -42,6 +42,18 @@ ciph_err_t _ciph_trie_add_text_with_data(
   void* nilable ud
 );
 
+#ifdef DEBUG
+#define DEBUG_PRINT
+#endif
+
+#ifdef DEBUG_PRINT
+
+#include <stdio.h>
+
+void _ciph_trie_print(FILE* nonnil out, const _ciph_trie_t* nonnil trie);
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

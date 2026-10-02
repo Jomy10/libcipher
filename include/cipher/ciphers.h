@@ -101,8 +101,8 @@ EXPORT ciph_err_t ciph_caesar(const uint8_t* nonnil input, size_t input_len, int
 /// - `CIPH_ERR_ALLOC`: when there was an error reallocating the output buffer
 EXPORT ciph_err_t ciph_morse(
   const uint8_t* nonnil input, size_t input_len,
-  ciph_str_t* nonnil output,
-  bool copy_non_encodable_characters
+  bool copy_non_encodable_characters,
+  ciph_str_t* nonnil output
 );
 
 #ifdef CIPH_AUDIO
@@ -150,8 +150,8 @@ EXPORT ciph_err_t ciph_morse_to_audio(
 /// - `CIPH_ERR_ALLOC`: when there was an error reallocating the output buffer
 EXPORT ciph_err_t ciph_numbers(
   const uint8_t* nonnil input, size_t input_len,
-  ciph_str_t* nonnil output,
-  bool copy_non_encodable_characters
+  bool copy_non_encodable_characters,
+  ciph_str_t* nonnil output
 );
 
 /// Transforms words into blocks and reads them column by column.
@@ -242,8 +242,34 @@ EXPORT ciph_err_t ciph_sub_parse(
   ciph_sub_t* nonnil sub
 );
 
+EXPORT ciph_err_t ciph_sub_add_cat(
+  ciph_sub_t sub,
+  bool (* nonnil is_cat)(ucs4_t),
+  const uint8_t* nonnil subs, size_t subs_len
+);
+
+/// When set to true, multiple categories after each other will only be output
+/// as one (the one added first)
+EXPORT void ciph_sub_set_cat_singular(
+  ciph_sub_t sub,
+  bool singular
+);
+
+#ifdef __EMSCRIPTEN__
+EXPORT const ciph_sub_entry_t* nilable ciph_sub_entries_create(int size);
+
+EXPORT void ciph_sub_entries_add_entry(
+  ciph_sub_entry_t* nonnil entries,
+  const uint8_t* nonnil input, size_t input_len,
+  const uint8_t* nonnil substitution, size_t substitution_len,
+  int i
+);
+
+EXPORT void ciph_sub_entries_free(const ciph_sub_entry_t* nonnil entries);
+#endif
+
 /// Free memory allocated by `ciph_sub_parse`
-void ciph_sub_free(ciph_sub_t* nonnil);
+EXPORT void ciph_sub_free(ciph_sub_t nonnil);
 
 /// Substitution cipher
 ///
@@ -348,6 +374,13 @@ EXPORT ciph_err_t ciph_alphabet_lookup(const uint8_t* nonnil input, size_t input
 #define CIPH_CHAR_INCLUDE_NUMBERS UC_CATEGORY_MASK_N
 #define CIPH_CHAR_INCLUDE_SYMBOLS UC_CATEGORY_MASK_Sm
 #define CIPH_CHAR_INCLUDE_DASHES  UC_CATEGORY_MASK_Pd
+
+#ifdef __EMSCRIPTEN__
+EXPORT uint32_t ciph_char_include_letters();
+EXPORT uint32_t ciph_char_include_numbers();
+EXPORT uint32_t ciph_char_include_symbols();
+EXPORT uint32_t ciph_char_include_dashes();
+#endif
 
 #ifdef __cplusplus
 }

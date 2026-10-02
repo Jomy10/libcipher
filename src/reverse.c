@@ -1,5 +1,5 @@
 #include <cipher.h>
-#include <cipher/internal/utils.h>
+#include <cipher/uc_cat.h>
 #include <string.h>
 #include <unitypes.h>
 #include <unistr.h>

@@ -1,7 +1,6 @@
-#include "unictype.h"
-#include <cipher/internal/unistring_config.h>
-#include <cipher/internal/utils.h>
+#include <cipher/uc_cat.h>
 #include <uniwbrk.h>
+#include <unictype.h>
 
 bool ciph_uc_is_wordbreak(ucs4_t uc) {
   if (uc_is_general_category(uc, UC_DASH_PUNCTUATION)) {
@@ -34,16 +33,32 @@ bool ciph_uc_is_wordbreak(ucs4_t uc) {
 #ifdef __EMSCRIPTEN__
 #include <cipher/ciphers.h>
 
-uint32_t ciph_year_include_mask_letters() {
-  return CIPH_YEAR_INCLUDE_MASK_LETTERS;
+bool ciph_uc_is_sentence_terminal(ucs4_t uc) {
+  return uc_is_property_sentence_terminal(uc) || uc_is_property_terminal_punctuation(uc);
 }
-uint32_t ciph_year_include_mask_letters_and_numbers() {
-  return CIPH_YEAR_INCLUDE_MASK_LETTERS_AND_NUMBERS;
+
+void* ciph_fnptr_uc_is_sentence_terminal() {
+  return (void*)&ciph_uc_is_sentence_terminal;
 }
-uint32_t ciph_year_include_mask_with_symbols() {
-  return CIPH_YEAR_INCLUDE_MASK_WITH_SYMBOLS;
+
+void* ciph_fnptr_uc_is_wordbreak() {
+  return (void*)&ciph_uc_is_wordbreak;
 }
-uint32_t ciph_year_include_mask_with_symbols_and_dashes() {
-  return CIPH_YEAR_INCLUDE_MASK_WITH_SYMBOLS_AND_DASHES;
+
+uint32_t ciph_char_include_letters() {
+  return CIPH_CHAR_INCLUDE_LETTERS;
 }
+
+uint32_t ciph_char_include_numbers() {
+  return CIPH_CHAR_INCLUDE_NUMBERS;
+}
+
+uint32_t ciph_char_include_symbols() {
+  return CIPH_CHAR_INCLUDE_SYMBOLS;
+}
+
+uint32_t ciph_char_include_dashes() {
+  return CIPH_CHAR_INCLUDE_DASHES;
+}
+
 #endif

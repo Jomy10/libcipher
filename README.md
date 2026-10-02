@@ -65,7 +65,7 @@ beaver cipher -o -- --no-audio
 The following will build a release build for use on the web.
 
 ```sh
-beaver --target wasm32-unkown-emscripten -o -- --build-unistring
+beaver --target wasm32-unknown-emscripten -o -- --build-unistring
 ```
 
 In the [binding/js](binding/js) directory you can find a binding file written
@@ -93,6 +93,11 @@ beaver test
 ```
 
 Same build options apply to the test command
+
+To build and test the js bindings:
+```sh
+beaver test --target wasm32-unknown-emscripten -o  
+```
 
 ## Contributing
 

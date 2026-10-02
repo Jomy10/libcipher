@@ -8,7 +8,7 @@
 #include <unicase.h>
 #include <unictype.h>
 
-#include <cipher/internal/utils.h>
+#include <cipher/uc_cat.h>
 #include <cipher.h>
 
 #ifdef CIPH_DIT
@@ -110,8 +110,8 @@ enum MorsePrev {
 
 ciph_err_t ciph_morse(
   const uint8_t* nonnil input, size_t input_len,
-  ciph_str_t* output,
-  bool copy_non_encodable_characters
+  bool copy_non_encodable_characters,
+  ciph_str_t* output
 ) {
   const uint8_t* input_ptr = input;
   const uint8_t* input_end = input + input_len;

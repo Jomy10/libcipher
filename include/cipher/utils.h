@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "error.h"
+#include "internal/nil.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,32 +13,38 @@ extern "C" {
 
 /// A growable UTF-8 string.
 typedef struct {
-  uint8_t* data;
+  uint8_t* nilable data;
   size_t cap;
   size_t len;
-  void*(*realloc)(void*, size_t);
+  void* nilable(* nonnil realloc)(void* nonnil, size_t);
 } ciph_str_t;
 
 /// Create an empty string with a certain capacity.
 /// When capacity is 0 or allocation fails, `data` will be NULL.
-ciph_str_t ciph_str_create(size_t capacity);
+EXPORT ciph_str_t ciph_str_create(size_t capacity);
 
-void ciph_str_free(ciph_str_t*);
+/// Same as `ciph_str_create`, but alloces the return type too.
+EXPORT ciph_str_t* nilable ciph_str_new(size_t capacity);
 
-void ciph_str_null_encode(ciph_str_t* str);
+EXPORT void ciph_str_free(ciph_str_t* nonnil);
 
-ciph_err_t ciph_str_realloc(ciph_str_t* str, size_t new_cap);
+/// Free string from `ciph_str_new`.
+EXPORT void ciph_str_delete(ciph_str_t* nonnil);
 
-ciph_err_t ciph_str_push_char(ciph_str_t* str, char c);
+EXPORT void ciph_str_null_encode(ciph_str_t* nonnil str);
 
-ciph_err_t ciph_str_push_str(ciph_str_t* str, const uint8_t* strb, size_t len);
+EXPORT ciph_err_t ciph_str_realloc(ciph_str_t* nonnil str, size_t new_cap);
+
+EXPORT ciph_err_t ciph_str_push_char(ciph_str_t* nonnil str, char c);
+
+EXPORT ciph_err_t ciph_str_push_str(ciph_str_t* nonnil str, const uint8_t* nonnil strb, size_t len);
 
 /// Returns the character popped.
-uint8_t ciph_str_pop(ciph_str_t* str);
+EXPORT uint8_t ciph_str_pop(ciph_str_t* nonnil str);
 
 /// Returns the pointer just after the new length of the string.
 /// Note that editing the str will invalidate this string.
-uint8_t* ciph_str_popn(ciph_str_t* str, size_t n);
+EXPORT uint8_t* nilable ciph_str_popn(ciph_str_t* nonnil str, size_t n);
 
 #define ciph_data_t ciph_str_t
 #define ciph_data_create ciph_str_create
@@ -46,7 +53,7 @@ uint8_t* ciph_str_popn(ciph_str_t* str, size_t n);
 #define ciph_data_push_bytes ciph_str_push_str
 
 /// Add byte `byte` to the end of `self` `n` times.
-ciph_err_t ciph_data_set_byte(ciph_data_t* self, unsigned char byte, size_t n);
+EXPORT ciph_err_t ciph_data_set_byte(ciph_data_t* nonnil self, unsigned char byte, size_t n);
 
 #ifdef __cplusplus
 }

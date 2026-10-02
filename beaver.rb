@@ -145,7 +145,7 @@ if TARGET.os == "emscripten"
   ciph_linker_flags.append(*[
     "-s", "EXPORT_ALL=1",
     "-s", "EXPORTED_RUNTIME_METHODS=['ccall', 'stringToNewUTF8', 'UTF8ToString']",
-    "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc', '_strlen', '_ciph_strerror']",
+    "-s", "EXPORTED_FUNCTIONS=['_malloc', '_free', '_realloc', '_calloc', '_strlen', '_ciph_strerror']",
     "-s", "EXPORT_ES6=1",
     "-s", "MODULARIZE=1",
     "-s", "ALLOW_MEMORY_GROWTH=#{memgrowth ? 1 : 0}",
@@ -177,6 +177,10 @@ ciph_linker_flags << "-mmacos-version-min=#{macos_version}"
 
 ciph_linker_flags.append(*(opt("Xlinker")&.split(",") || []))
 ciph_cflags.append(*(opt("Xcc")&.split(",") || []))
+
+if TARGET.os == "emscripten"
+  ciph_cflags << "-DDEBUG_PRINT"
+end
 
 C::Library(
   name: "cipher",
@@ -222,6 +226,13 @@ if TARGET.os == "emscripten"
       end
       sh "bun build.ts #{web_mode ? "browser" : "node"} --config #{OPT} #{minify_js ? "--always-minify" : ""} #{memgrowth ? "--memory-growth-enabled" : ""}"
     end
+
+    out_wasm = File.join(out_dir, "js", OPT, "cipher.wasm")
+    File.delete(out_wasm) if File.exist? out_wasm
+    FileUtils.cp(
+      File.join(out_dir, "wasm32-unknown-emscripten", OPT, "libcipher", "artifacts", "cipher.wasm"),
+      out_wasm
+    )
   end
 end
 
@@ -255,5 +266,3 @@ pre "clean" do
   File.delete "include/cipher/internal/unistring_config.h" if File.exist? "include/cipher/internal/unistring_config.h"
   FileUtils.rm_r "deps" if Dir.exist? "deps"
 end
-
-puts ".."

@@ -9,7 +9,7 @@
 void _test_numbers2(const uint8_t* input, size_t input_len, const uint8_t* expected, size_t expected_len, bool copy_non_encodable_characters) {
   ciph_str_t out = ciph_str_create(expected_len);
   CU_ASSERT(
-    ciph_numbers(input, input_len, &out, copy_non_encodable_characters) == CIPH_OK
+    ciph_numbers(input, input_len, copy_non_encodable_characters, &out) == CIPH_OK
   );
 
   dbgout2(out.data, out.len, expected, expected_len);

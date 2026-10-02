@@ -3,6 +3,7 @@
 #include <CUnit/Basic.h>
 #include <unistr.h>
 #include "cipher/ciphers.h"
+#include "cipher/uc_cat.h"
 #include "cipher/utils.h"
 #include "utils.h"
 
@@ -34,14 +35,29 @@ void test_sub(void) {
     (ciph_sub_entry_t){ (const uint8_t*)"fg", 2, (const uint8_t*)"XY", 2 },
   };
   ciph_sub_t sub;
-  ciph_sub_parse(entries, 4, &sub);
+  CU_ASSERT(ciph_sub_parse(entries, 4, &sub) == CIPH_OK);
+
   _test_sub2((const uint8_t*)"abcdefg", (const uint8_t*)"aGFXdeXY", sub);
-  ciph_sub_free(&sub);
+  ciph_sub_free(sub);
+}
+
+void test_sub_cat(void) {
+  ciph_sub_entry_t entries[1] = {
+    (ciph_sub_entry_t){ (const uint8_t*)"bc", 2, (const uint8_t*)"GFX", 3 },
+  };
+
+  ciph_sub_t sub;
+  CU_ASSERT(ciph_sub_parse(entries, 1, &sub) == CIPH_OK);
+
+  CU_ASSERT(ciph_sub_add_cat(sub, ciph_uc_is_wordbreak, (const uint8_t*)"SPACE", 5) == CIPH_OK);
+
+  _test_sub2((const uint8_t*)"abc defg", (const uint8_t*)"aGFXSPACEdefg", sub);
 }
 
 CU_SuiteInfo suite_sub(void) {
   static CU_TestInfo tests[] = {
     { "sub", test_sub },
+    { "sub cat", test_sub_cat }
   };
   return (CU_SuiteInfo){ "substitution", NULL, NULL, NULL, NULL, tests };
 }

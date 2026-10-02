@@ -1,3 +1,4 @@
+#include <cipher.h>
 #include <math.h>
 #include <assert.h>
 
@@ -7,9 +8,8 @@
 #include <unigbrk.h>
 
 #include "cipher/error.h"
-#include "cipher/internal/utils.h"
+#include "cipher/uc_cat.h"
 #include "cipher/utils.h"
-#include <cipher.h>
 
 static inline size_t _ciph_next_perfect_square(size_t input, size_t* nonnil n) {
   *n = (size_t)ceil(sqrt(input));

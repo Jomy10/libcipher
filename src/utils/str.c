@@ -15,7 +15,7 @@ size_t _max(size_t a, size_t b) {
 }
 
 ciph_err_t _ciph_str_alloc(ciph_str_t* str, size_t cap) {
-  str->data = malloc(cap);
+  str->data = CIPH_MALLOC(cap);
   if (str->data == NULL) {
     return CIPH_ERR_ALLOC;
   }
@@ -34,11 +34,27 @@ ciph_str_t ciph_str_create(size_t capacity) {
   return str;
 }
 
+ciph_str_t* ciph_str_new(size_t capacity) {
+  ciph_str_t* str = CIPH_MALLOC(sizeof(ciph_str_t));
+  *str = ciph_str_create(capacity);
+  if (str->data == NULL && str->cap > 0) {
+    CIPH_FREE(str);
+    return NULL;
+  }
+
+  return str;
+}
+
 void ciph_str_free(ciph_str_t* nonnil str) {
-  free(str->data);
+  CIPH_FREE(str->data);
   str->data = NULL;
   str->len = 0;
   str->cap = 0;
+}
+
+void ciph_str_delete(ciph_str_t* str) {
+  ciph_str_free(str);
+  CIPH_FREE(str);
 }
 
 void ciph_str_null_encode(ciph_str_t* nonnil str) {
@@ -97,11 +113,13 @@ ciph_err_t ciph_str_push_str(ciph_str_t* nonnil str, const uint8_t* nonnil strb,
 }
 
 uint8_t ciph_str_pop(ciph_str_t* str) {
+  if (str->len == 0) return 0;
   str->len -= 1;
   return str->data[str->len];
 }
 
 uint8_t* ciph_str_popn(ciph_str_t* str, size_t n) {
+  if (str->len < n) return NULL;
   str->len -= n;
   return str->data + str->len;
 }
