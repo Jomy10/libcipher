@@ -328,8 +328,8 @@ const cipher = {
 
       outputStr = cipher._morse_common(input, false);
 
-      const outputStrPtr = 0;
-      const outputStrLen = 0;
+      const outputStrPtr = cipher._Module.HEAPU32[outputStr / intsize];
+      const outputStrLen = cipher._Module.HEAPU32[(outputStr + 8) / intsize];
 
       outputWave = cipher._Module._ciph_str_new(1024);
       const err = cipher._Module._ciph_morse_to_audio(
@@ -339,12 +339,12 @@ const cipher = {
       );
       if (err != cipher.Err.OK) throw new cipher.Error(err);
 
-      const outputWavePtr = 0;
-      const outputWaveLen = 0;
+      const outputWavePtr = cipher._Module.HEAPU32[outputWave / intsize];
+      const outputWaveLen = cipher._Module.HEAPU32[(outputWave + 8) / intsize];
 
       output(cipher._Module.HEAPU8.subarray(outputWavePtr, outputWavePtr + outputWaveLen));
     } finally {
-      if (outputStr != null) cipher._Module._ciph_str_delete(output);
+      if (outputStr != null) cipher._Module._ciph_str_delete(outputStr);
       if (outputWave != null) cipher._Module._ciph_str_delete(outputWave);
     }
   },
@@ -638,25 +638,21 @@ const cipher = {
     ascii: function(input: string): string {
       let res: string;
       cipher.ascii(input, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
     reverse_words: function(input: string): string {
       let res: string;
       cipher.reverse_words(input, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
     caesar: function(input: string, shift: number): string {
       let res: string;
       cipher.caesar(input, shift, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
     alphabet_lookup: function(input: string, lookup: string): string {
       let res: string;
       cipher.alphabet_lookup(input, lookup, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
     alphabet: {
@@ -664,35 +660,30 @@ const cipher = {
       vignere: function(word: string): [string, string] {
         let res: [string, string];
         cipher.alphabet.vignere(word, (alph: string, visualize: string) => res = [alph, visualize]);
-        // @ts-ignore
         return res;
       }
     },
     morse: function(input: string, copy_non_encodable_characters: boolean): string {
       let res: string;
       cipher.morse(input, copy_non_encodable_characters, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
-    // morse_to_audio: function(morse: string, secs_per_dit: number): Uint8Array {
-    //   let res: Uint8Array;
-    //   cipher.morse_to_audio(morse, secs_per_dit, (wave_data) => {
-    //     res = new Uint8Array(wave_data.byteLength);
-    //     res.set(wave_data, 0);
-    //   });
-    //   // @ts-ignore
-    //   return res;
-    // },
+    morse_audio: function(text: string, secs_per_dit: number, sample_rate: number): Uint8Array {
+      let res: Uint8Array;
+      cipher.morse_audio(text, secs_per_dit, sample_rate, (wave_data) => {
+        res = new Uint8Array(wave_data.byteLength);
+        res.set(wave_data, 0);
+      });
+      return res;
+    },
     numbers: function(input: string, copy_non_encodable_characters: boolean): string {
       let res: string;
       cipher.numbers(input, copy_non_encodable_characters, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
     block_method: function(input: string): string {
       let res: string;
       cipher.block_method(input, (e: string) => res = e.repeat(1));
-      // @ts-ignore
       return res;
     },
     sub: function (
@@ -711,7 +702,6 @@ const cipher = {
         // copy_non_encodable_characters,
         (output: string) => res = output.repeat(1)
       );
-      // @ts-ignore
       return res;
     },
     year: function(
@@ -721,7 +711,6 @@ const cipher = {
     ) {
       let res: string;
       cipher.year(input, year, include_bitmask, (output: string) => res = output.repeat(1));
-      // @ts-ignore
       return res;
     }
   }
