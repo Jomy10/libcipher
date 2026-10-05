@@ -1,3 +1,4 @@
+#include "cipher/error.h"
 #include <cipher.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -139,7 +140,10 @@ ciph_err_t ciph_year(
   const uint8_t* next;
   int grapheme_len;
 
-  if (year[0] + year[1] + year[2] + year[3] == 0) {
+  if (
+    (year[0] > 9 || year[1] > 9 || year[3] > 9 || year[4] > 9) ||
+    (year[0] == 0 && year[1] == 0 && year[2] == 0 && year[3] == 0)
+  ) {
     return CIPH_ERR_YEAR_DIGITS;
   }
 

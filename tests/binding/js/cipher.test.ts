@@ -77,7 +77,7 @@ const windroos_sub = {
   "V": "ZOOZO*.",
   "W": "ZOZZO*.",
   "X": "ZZZO*.",
-  "y": "ZZZW*.",
+  "Y": "ZZZW*.",
   "Z": "ZWZZW*."
 };
 
