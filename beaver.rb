@@ -228,11 +228,12 @@ if TARGET.os == "emscripten"
     end
 
     out_wasm = File.join(out_dir, "js", OPT, "cipher.wasm")
+    in_wasm = File.join(out_dir, "wasm32-unknown-emscripten", OPT, "libcipher", "artifacts", "cipher.wasm")
     File.delete(out_wasm) if File.exist? out_wasm
     FileUtils.cp(
-      File.join(out_dir, "wasm32-unknown-emscripten", OPT, "libcipher", "artifacts", "cipher.wasm"),
+      in_wasm,
       out_wasm
-    )
+    ) if File.exist?(in_wasm)
   end
 end
 
