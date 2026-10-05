@@ -305,7 +305,7 @@ const cipher = {
     }
 
     // let [outputptr, outputlen]: [number | null, number | null] = [null, null];
-    let str: any;
+    let str: number;
     try {
       str = cipher._morse_common(input, copy_non_encodable_characters);
       output(cipher._ciphStr.toStr(str));
@@ -321,31 +321,31 @@ const cipher = {
       return;
     }
 
-    let [morseOutputPtr, morseOutputLen]: [number | null, number | null] = [null, null];
-
-    const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
-    const outputptrptr = cipher._Module._malloc(intsize);
-    const outputlenptr = cipher._Module._malloc(intsize);
-
+    let outputStr: number;
+    let outputWave: number;
     try {
-      [morseOutputPtr, morseOutputLen] = cipher._morse_common(input, false);
-      const ret = cipher._Module._ciph_alloc_morse_to_audio(
-        morseOutputPtr, morseOutputLen,
+      const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+
+      outputStr = cipher._morse_common(input, false);
+
+      const outputStrPtr = 0;
+      const outputStrLen = 0;
+
+      outputWave = cipher._Module._ciph_str_new(1024);
+      const err = cipher._Module._ciph_morse_to_audio(
+        outputStrPtr, outputStrLen,
         secs_per_dit, sample_rate,
-        outputptrptr, outputlenptr
+        outputWave
       );
+      if (err != cipher.Err.OK) throw new cipher.Error(err);
 
-      if (ret != cipher.Err.OK) throw new cipher.Error(ret);
+      const outputWavePtr = 0;
+      const outputWaveLen = 0;
 
-      const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      const outputlen = cipher._Module.HEAP32[outputlenptr / intsize];
-      output(cipher._Module.HEAPU8.subarray(outputptr, outputptr + outputlen));
+      output(cipher._Module.HEAPU8.subarray(outputWavePtr, outputWavePtr + outputWaveLen));
     } finally {
-      if (morseOutputPtr != null) cipher._Module._free(morseOutputPtr);
-      const outputptr = cipher._Module.HEAP32[outputptrptr / intsize];
-      cipher._Module._free(outputptr);
-      cipher._Module._free(outputptrptr);
-      cipher._Module._free(outputlenptr);
+      if (outputStr != null) cipher._Module._ciph_str_delete(output);
+      if (outputWave != null) cipher._Module._ciph_str_delete(outputWave);
     }
   },
 
@@ -508,6 +508,42 @@ const cipher = {
     }
   },
 
+  substitution: {
+    _kenny: function (free: boolean, output: (sub: number) => void): number {
+      const intsize = cipher._Module.HEAP32.BYTES_PER_ELEMENT;
+      let subptrptr = cipher._Module._calloc(1, intsize);
+      if (subptrptr == 0) {
+        throw new Error("Allocation error");
+      }
+      let subptr = 0;
+
+      try {
+        const err = cipher._Module._ciph_sub_kenny_lang(subptrptr);
+        if (err != cipher.Err.OK) {
+          throw new cipher.Error(err);
+        }
+        subptr = cipher._Module.HEAP32[subptrptr / intsize];
+        output(subptr);
+      } catch {
+        cipher._Module._free(subptrptr);
+        subptrptr = 0;
+        if (subptr != 0)
+          cipher._Module._ciph_sub_free(subptr);
+      } finally {
+        if (subptrptr != 0)
+          cipher._Module._free(subptrptr);
+        if (free && subptr != 0) {
+          cipher._Module._ciph_sub_free(subptr);
+        }
+      }
+
+      return subptrptr;
+    },
+    kenny: function (output: (sub: number) => void) {
+      cipher.substitution._kenny(true, output);
+    }
+  },
+
   year: function(
     input: string,
     year: string,
@@ -581,6 +617,15 @@ const cipher = {
       let ptr: number;
       cipher._sub_parse(substitutions, cat_subs, false, singular, (n: number) => { ptr = n; })
       return new cipher.unmanaged.Substitution(ptr);
+    },
+    substitution: {
+      kenny: function (): any {
+        let sub: cipher.unmanaged.Substitution;
+        cipher.substitution._kenny(false, (ptr: number) => {
+          sub = new cipher.unmanaged.Substitution(ptr);
+        });
+        return sub;
+      }
     }
   },
 

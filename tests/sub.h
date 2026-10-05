@@ -54,10 +54,18 @@ void test_sub_cat(void) {
   _test_sub2((const uint8_t*)"abc defg", (const uint8_t*)"aGFXSPACEdefg", sub);
 }
 
+void test_sub_kenny(void) {
+  ciph_sub_t sub;
+  CU_ASSERT(ciph_sub_kenny_lang(&sub) == CIPH_OK);
+
+  _test_sub2((const uint8_t*)"Kenny", (const uint8_t*)"Pmpmppppppppffm", sub);
+}
+
 CU_SuiteInfo suite_sub(void) {
   static CU_TestInfo tests[] = {
     { "sub", test_sub },
-    { "sub cat", test_sub_cat }
+    { "sub cat", test_sub_cat },
+    { "sub kenny", test_sub_kenny }
   };
   return (CU_SuiteInfo){ "substitution", NULL, NULL, NULL, NULL, tests };
 }

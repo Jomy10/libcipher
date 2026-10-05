@@ -271,6 +271,19 @@ EXPORT void ciph_sub_entries_free(const ciph_sub_entry_t* nonnil entries);
 /// Free memory allocated by `ciph_sub_parse`
 EXPORT void ciph_sub_free(ciph_sub_t nonnil);
 
+/// Alphabet for substitution language. Kenny language is the language spoken
+/// (mumbled) by Kenny McCormick in Soutpark.
+///
+/// The alphabet can be used in `ciph_sub`.
+///
+/// # Parameters
+/// - `sub`: The output substitution definition
+///
+/// # Returns
+/// - `CIPH_OK`
+/// - `CIPH_ERR_ALLOC`: when there was an error reallocating the output buffer
+EXPORT ciph_err_t ciph_sub_kenny_lang(ciph_sub_t* nonnil sub);
+
 /// Substitution cipher
 ///
 /// # Parameters

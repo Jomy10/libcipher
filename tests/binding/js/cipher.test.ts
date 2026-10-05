@@ -96,6 +96,12 @@ test("substitution sentence", () => {
   )
 });
 
+test("substitution kenny", () => {
+  cipher.substitution.kenny((sub: number) => {
+    expect(cipher.copy.sub("This is kenny language", sub).toBe("Fmpmfpmfffmm mfffmm pmpmppppppppffm pmfmmmpppmfmfmfmmmmfmmpp"));
+  });
+});
+
 test("year", () => {
   expect(cipher.copy.year(
     "GA NU DADELIJK TERUG NAAR HET LOKAAL",
