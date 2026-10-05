@@ -141,7 +141,7 @@ ciph_err_t ciph_year(
   int grapheme_len;
 
   if (
-    (year[0] > 9 || year[1] > 9 || year[3] > 9 || year[4] > 9) ||
+    (year[0] > 9 || year[1] > 9 || year[2] > 9 || year[3] > 9) ||
     (year[0] == 0 && year[1] == 0 && year[2] == 0 && year[3] == 0)
   ) {
     return CIPH_ERR_YEAR_DIGITS;
