@@ -551,12 +551,12 @@ const cipher = {
     include_bitmask: number,
     output: (result: string) => void
   ) {
-    if (year.length != 4)
-      throw new cipher.Error(cipher.Err.ERR_YEAR_DIGITS);
     if (input.length == 0) {
       output("");
       return;
     }
+    if (year.length != 4)
+      throw new cipher.Error(cipher.Err.ERR_YEAR_DIGITS);
 
     let [inputptr, inputlen] = _strToUTF8WithLength(input);
     const str: number = cipher._Module._ciph_str_new(128);
