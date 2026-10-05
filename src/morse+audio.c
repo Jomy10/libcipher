@@ -5,8 +5,8 @@
 #include <cipher.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include <assert.h>
 #include <cipher/uc_cat.h>
+#include <assert.h>
 #include <string.h>
 #include <unicase.h>
 #include <unictype.h>
@@ -94,7 +94,7 @@ ciph_err_t ciph_morse_to_audio(
 
     if (input_left - uc_size > 0) {
       u8_mbtouc(&uc_next, input_ptr + uc_size, input_left - uc_size);
-    } {
+    } else {
       uc_next = 0;
     }
 

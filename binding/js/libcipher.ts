@@ -1,5 +1,6 @@
 // import Module from "../../build/release/cipher.js";
 import Module from "@libcipher_build/cipher.js";
+import WaveFile, { AudioFormat } from "./wave";
 
 declare const MEMORY_GROWTH: boolean;
 
@@ -668,11 +669,21 @@ const cipher = {
       cipher.morse(input, copy_non_encodable_characters, (e: string) => res = e.repeat(1));
       return res;
     },
-    morse_audio: function(text: string, secs_per_dit: number, sample_rate: number): Uint8Array {
+    /** Transform morse to audio wave data */
+    morse_audio: function(input: string, secs_per_dit: number, sample_rate: number): Uint8Array {
       let res: Uint8Array;
-      cipher.morse_audio(text, secs_per_dit, sample_rate, (wave_data) => {
+      cipher.morse_audio(input, secs_per_dit, sample_rate, (wave_data) => {
         res = new Uint8Array(wave_data.byteLength);
         res.set(wave_data, 0);
+      });
+      return res;
+    },
+    /** Transform morse to an audio wav file */
+    morse_audio_file: function (input: string, secs_per_dit: number, sample_rate: number): Uint8Array {
+      let res: Uint8Array;
+      cipher.morse_audio(input, secs_per_dit, sample_rate, (wave_data) => {
+        const f = new WaveFile(AudioFormat.PCM, 1, sample_rate, 16, wave_data);
+        res = f.toBytes();
       });
       return res;
     },

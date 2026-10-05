@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import cipher from "../../../build/js/release/libcipher";
+import WaveFile from "../../../binding/js/wave";
 
 test("ascii", () => {
   expect(cipher.copy.ascii("ABCX z")).toBe("065 066 067 088 032 122");
@@ -31,6 +32,17 @@ test("alphabet lookup", () => {
 test("morse", () => {
   expect(cipher.copy.morse("ABc DeF. AD", true)).toBe(".- -... -.-. / -.. . ..-. // .- -..");
 });
+
+test("morse audio", async () => {
+  const data = cipher.copy.morse_audio("SOS", 0.3, 44100);
+
+  const f = Bun.file("morse-audio.wav");
+  const arrbuf = await f.arrayBuffer();
+  const farr = new Uint8Array(arrbuf);
+  const fdata = WaveFile.fileToData(farr);
+
+  expect(data).toEqual(fdata);
+})
 
 test("numbers", () => {
   expect(cipher.copy.numbers("ABCX Z", true)).toBe("1 2 3 24 / 26");
